@@ -1,0 +1,67 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev: vite + open",
+      "detail": "启动 Vite，并用系统默认浏览器打开",
+      "type": "shell",
+      "command": "npm run dev -- --open",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": false,
+        "focus": true
+      }
+    },
+    {
+      "label": "dev: vite",
+      "detail": "只启动 Vite，不自动打开浏览器",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": false
+      }
+    },
+    {
+      "label": "open: localhost",
+      "detail": "用系统默认浏览器打开 http://localhost:5173",
+      "type": "shell",
+      "command": "Start-Process 'http://localhost:5173'",
+      "problemMatcher": []
+    },
+    {
+      "label": "check: lint",
+      "type": "npm",
+      "script": "lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "check: typecheck",
+      "type": "npm",
+      "script": "typecheck",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "build: production",
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": ["$tsc"]
+    }
+  ]
+}

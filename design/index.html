@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevFlow · Design Files</title>
+<style>
+  :root {
+    --canvas: #f2f0e9;
+    --panel: #fbfaf6;
+    --ink: #171a16;
+    --muted: #73786d;
+    --line: #deddd4;
+    --lime: #c8f56a;
+    --sans: "Segoe UI Variable Display", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+    --mono: "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--canvas); color: var(--ink); font-family: var(--sans); }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1300px; margin: 0 auto; padding: 34px 30px 70px; }
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .mark { width: 34px; height: 34px; border-radius: 10px; background: var(--lime); color: var(--ink); display: grid; place-items: center; font-weight: 800; }
+  .brand b { display: block; font-size: 18px; letter-spacing: -.04em; }
+  .brand span { display: block; margin-top: 3px; color: #8b9084; font: 9px var(--mono); letter-spacing: .14em; }
+  .headline { margin: 46px 0 8px; font-size: 48px; line-height: 1.04; letter-spacing: -.055em; font-weight: 650; }
+  .sub { max-width: 620px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+  .meta { text-align: right; color: #8b9084; font: 9px/1.8 var(--mono); letter-spacing: .04em; }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .hero { margin-top: 32px; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: var(--panel); box-shadow: 0 10px 40px rgba(23, 26, 22, .06); }
+  .hero img { display: block; width: 100%; height: auto; }
+  .hero-bar { display: flex; align-items: center; justify-content: space-between; padding: 15px 19px; border-top: 1px solid var(--line); }
+  .hero-bar b { font-size: 14px; letter-spacing: -.02em; }
+  .hero-bar span { color: #8b9084; font-size: 11px; }
+  .btn { height: 31px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; background: var(--panel); color: #4f564b; font-size: 10px; }
+  .btn.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .section-head { display: flex; align-items: flex-end; justify-content: space-between; margin: 40px 0 14px; }
+  .section-head h2 { margin: 0; font-size: 19px; letter-spacing: -.035em; }
+  .section-head span { color: #8b9084; font: 9px var(--mono); letter-spacing: .08em; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .card { border: 1px solid var(--line); border-radius: 15px; overflow: hidden; background: var(--panel); }
+  .shot { display: block; background: #e8e5dc; }
+  .shot img { display: block; width: 100%; height: auto; transition: transform .25s; }
+  .shot:hover img { transform: scale(1.012); }
+  .card-foot { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-top: 1px solid var(--line); }
+  .card-foot .no { color: #a0a498; font: 9px var(--mono); }
+  .card-foot b { display: block; font-size: 13px; letter-spacing: -.02em; }
+  .card-foot p { margin: 3px 0 0; color: #8b9084; font-size: 10px; }
+  .card-foot .open { margin-left: auto; flex: none; color: #5d6c4e; font-size: 10px; font-weight: 600; }
+  .note { margin-top: 34px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: rgba(251, 250, 246, .55); display: flex; align-items: center; gap: 16px; }
+  .note .tag { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); flex: none; box-shadow: 0 0 0 4px rgba(200, 245, 106, .18); }
+  .note p { margin: 0; color: #747a6e; font-size: 11px; line-height: 1.6; }
+  .note b { color: var(--ink); }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .headline { font-size: 36px; } .meta { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="mark">D</span><span><b>DevFlow</b><span>PERSONAL OS · DESIGN FILES</span></span></div>
+    <div class="meta"><b>Vue 3 + TypeScript + Vite</b><br>Desktop 1440 × 1024<br>2026.10</div>
+  </header>
+
+  <h1 class="headline">A quiet cockpit<br>for getting hired.</h1>
+  <p class="sub">DevFlow 把求职期的任务、知识、投递和学习复盘收束到一个工作台。以下是第一版高保真设计图，以及空状态、错误状态和移动端快捷操作定义。</p>
+
+  <div class="hero">
+    <a href="prototype.html#overview"><img src="exports/01-overview.png" alt="DevFlow 概览页"></a>
+    <div class="hero-bar">
+      <div><b>概览 · Today</b><span style="margin-left:10px">今日聚焦、学习节奏、下一步</span></div>
+      <a class="btn dark" href="prototype.html#overview">打开可点击原型 →</a>
+    </div>
+  </div>
+
+  <div class="section-head"><h2>全部页面</h2><span>5 SCREENS + 1 STATE BOARD</span></div>
+  <div class="grid">
+    <article class="card">
+      <a class="shot" href="prototype.html#tasks"><img src="exports/02-tasks.png" alt="任务页"></a>
+      <div class="card-foot"><span class="no">02</span><div><b>任务 · Tasks</b><p>今天 / 本周 / 全部，列表与分组，编辑抽屉</p></div><a class="open" href="prototype.html#tasks">查看 →</a></div>
+    </article>
+    <article class="card">
+      <a class="shot" href="prototype.html#knowledge"><img src="exports/03-knowledge.png" alt="知识库页"></a>
+      <div class="card-foot"><span class="no">03</span><div><b>知识库 · Knowledge</b><p>笔记 / 面试题 / 片段，掌握度与自动保存</p></div><a class="open" href="prototype.html#knowledge">查看 →</a></div>
+    </article>
+    <article class="card">
+      <a class="shot" href="prototype.html#jobs"><img src="exports/04-jobs.png" alt="求职页"></a>
+      <div class="card-foot"><span class="no">04</span><div><b>求职 · Jobs</b><p>五阶段看板，下一步动作与跟进时间线</p></div><a class="open" href="prototype.html#jobs">查看 →</a></div>
+    </article>
+    <article class="card">
+      <a class="shot" href="prototype.html#insights"><img src="exports/05-insights.png" alt="复盘页"></a>
+      <div class="card-foot"><span class="no">05</span><div><b>复盘 · Insights</b><p>学习投入、主题掌握度、求职漏斗与学习记录</p></div><a class="open" href="prototype.html#insights">查看 →</a></div>
+    </article>
+    <article class="card" style="grid-column: 1 / -1">
+      <a class="shot" href="prototype.html#states"><img src="exports/06-states.png" alt="交互状态板"></a>
+      <div class="card-foot"><span class="no">06</span><div><b>交互状态 · States</b><p>空状态、无搜索结果、删除确认、编辑抽屉、保存失败、移动端快速添加</p></div><a class="open" href="prototype.html#states">查看 →</a></div>
+    </article>
+  </div>
+
+  <div class="note"><span class="tag"></span><p><b>设计已定稿。</b>下一步是 Vue 工程初始化与 App Shell，不把原型 HTML 直接搬进业务代码。交互细则和设计 token 见 <a href="README.md" style="text-decoration:underline">README</a>。</p></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>DevFlow · 设计原型</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-check-square" viewBox="0 0 24 24"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/><path d="m9 11 3 3L22 4"/></symbol>
+    <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.88 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1.11 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.88.34H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.88V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 22c4 0 7-2.7 7-6.5 0-2.6-1.4-4.7-3.4-6.5-.5 1.9-1.8 3-3.1 3.3.3-3.7-1.3-6.9-4.3-9.3.1 3.1-1.2 4.8-2.4 6.5A7.2 7.2 0 0 0 5 15.5C5 19.3 8 22 12 22z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="m12 17 5-5-2-2 1-5-6 6-5-1 2 2-5 5z"/><path d="m9 14-5 5"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 4.2 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3 1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4z"/><path d="m19 14 .8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8zM5 15l.6 1.7L7.3 17l-1.7.6L5 19l-.6-1.4L2.7 17l1.7-.3z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.1-6.3L3 9"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 14h5l2 3h2l2-3h5"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6M16 6l6 6-6 6M14 4l-4 16"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5"/><path d="M4 17v-5h5"/><path d="M6.1 9A7 7 0 0 1 19 12M18 15a7 7 0 0 1-13 3"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============================================================
+     SCREEN 01 — OVERVIEW
+     ============================================================ -->
+<section class="screen" id="overview">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#overview">
+        <span class="brand-mark">D</span>
+        <span><span class="brand-name">DevFlow</span><span class="brand-sub">PERSONAL OS</span></span>
+      </a>
+      <div class="workspace">
+        <span class="workspace-mark">01</span>
+        <div class="workspace-copy">
+          <div class="workspace-label">Workspace</div>
+          <div class="workspace-name">个人工作台 · 求职季</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-chevron-down"/></svg>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item active" href="#overview"><svg class="icon"><use href="#i-grid"/></svg><span>概览</span></a>
+        <a class="nav-item" href="#tasks"><svg class="icon"><use href="#i-check-square"/></svg><span>任务</span><span class="nav-count">8</span></a>
+        <a class="nav-item" href="#knowledge"><svg class="icon"><use href="#i-book-open"/></svg><span>知识库</span></a>
+        <a class="nav-item" href="#jobs"><svg class="icon"><use href="#i-briefcase"/></svg><span>求职</span><span class="nav-count">6</span></a>
+        <a class="nav-item" href="#insights"><svg class="icon"><use href="#i-chart"/></svg><span>复盘</span></a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="side-goal">
+        <div class="side-goal-head">
+          <span class="side-goal-label">WEEKLY GOAL</span>
+          <svg class="icon icon-xs" style="color:#8d9685"><use href="#i-target"/></svg>
+        </div>
+        <div class="side-goal-value">8.5 <span>/ 12 小时</span></div>
+        <div class="side-goal-bar"><span></span></div>
+        <div class="side-goal-foot"><span>本周学习</span><span>还差 3.5h</span></div>
+      </div>
+      <div class="profile">
+        <span class="avatar">陈</span>
+        <div class="profile-copy">
+          <div class="profile-name">陈序</div>
+          <div class="profile-role">FRONTEND · JOB HUNT</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-settings"/></svg>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumbs">工作台 <span class="slash">/</span> <strong>概览</strong></div>
+        <div class="top-actions">
+          <div class="search-pill"><svg class="icon icon-sm"><use href="#i-search"/></svg><span>搜索任务、笔记、公司…</span><kbd>⌘ K</kbd></div>
+          <button class="icon-btn" aria-label="切换主题"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button>
+          <a class="btn btn-lime" href="#tasks"><svg class="icon"><use href="#i-plus"/></svg>快速新建</a>
+        </div>
+      </header>
+
+      <div class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow"><span class="signal"></span> THU · 22 OCT 2026 <span style="color:#b6b9ae">/</span> 第 4 天</div>
+            <h1>下午好，陈序。</h1>
+            <p class="page-sub">今天先推进 3 件事，剩下的交给节奏。</p>
+          </div>
+          <div class="head-actions">
+            <a class="btn btn-ghost" href="#insights"><svg class="icon"><use href="#i-clock"/></svg>记录学习</a>
+            <a class="btn btn-primary" href="#tasks"><svg class="icon"><use href="#i-plus"/></svg>新建任务</a>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="dash-col">
+            <section class="card focus-card">
+              <div class="focus-top">
+                <div>
+                  <div class="card-title">今日聚焦</div>
+                  <div class="card-sub">只放今天必须推进的事</div>
+                </div>
+                <div class="focus-progress"><b>3 / 5</b><div class="progress"><span style="width:60%"></span></div><span>完成</span></div>
+              </div>
+
+              <div class="overdue">
+                <svg class="icon"><use href="#i-alert"/></svg>
+                <span><strong>1 项逾期</strong> · 完善旧项目 README 的技术亮点</span>
+                <span class="overdue-action">移到今天 <svg class="icon icon-xs"><use href="#i-arrow-right"/></svg></span>
+              </div>
+
+              <div class="focus-list">
+                <div class="focus-row done">
+                  <span class="check done"><svg class="icon"><use href="#i-check"/></svg></span>
+                  <div class="focus-copy">
+                    <div class="focus-title">复盘 Vue 3 响应式原理</div>
+                    <div class="focus-meta"><span class="chip chip-learning">学习</span><span>45 min</span><span class="sep"></span><span>完成于 10:24</span></div>
+                  </div>
+                  <div class="focus-right"><span class="priority p0">P0</span><svg class="icon icon-sm" style="color:#b2b6aa"><use href="#i-more"/></svg></div>
+                </div>
+                <div class="focus-row done">
+                  <span class="check done"><svg class="icon"><use href="#i-check"/></svg></span>
+                  <div class="focus-copy">
+                    <div class="focus-title">投递 2 个匹配岗位</div>
+                    <div class="focus-meta"><span class="chip chip-job">求职</span><span>30 min</span><span class="sep"></span><span>完成于 11:06</span></div>
+                  </div>
+                  <div class="focus-right"><span class="priority p1">P1</span><svg class="icon icon-sm" style="color:#b2b6aa"><use href="#i-more"/></svg></div>
+                </div>
+                <div class="focus-row done">
+                  <span class="check done"><svg class="icon"><use href="#i-check"/></svg></span>
+                  <div class="focus-copy">
+                    <div class="focus-title">整理项目 README 的技术亮点</div>
+                    <div class="focus-meta"><span class="chip chip-project">项目</span><span>40 min</span><span class="sep"></span><span>完成于 13:12</span></div>
+                  </div>
+                  <div class="focus-right"><span class="priority p1">P1</span><svg class="icon icon-sm" style="color:#b2b6aa"><use href="#i-more"/></svg></div>
+                </div>
+                <div class="focus-row">
+                  <span class="check"></span>
+                  <div class="focus-copy">
+                    <div class="focus-title">完成 DevFlow 任务模块交互稿</div>
+                    <div class="focus-meta"><span class="chip chip-project">项目</span><span>90 min</span><span class="sep"></span><span class="chip chip-lime" style="height:18px">进行中</span></div>
+                  </div>
+                  <div class="focus-right"><span class="priority p0">P0</span><svg class="icon icon-sm" style="color:#b2b6aa"><use href="#i-more"/></svg></div>
+                </div>
+                <div class="focus-row">
+                  <span class="check"></span>
+                  <div class="focus-copy">
+                    <div class="focus-title">跟进字节跳动 HR 反馈</div>
+                    <div class="focus-meta"><span class="chip chip-job">求职</span><span>15 min</span><span class="sep"></span><span class="due-coral">今天 18:00</span></div>
+                  </div>
+                  <div class="focus-right"><span class="priority p0">P0</span><svg class="icon icon-sm" style="color:#b2b6aa"><use href="#i-more"/></svg></div>
+                </div>
+              </div>
+
+              <div class="focus-foot">
+                <span>预计剩余 2h 10m · 下一个专注 25:00</span>
+                <a href="#tasks">查看全部任务 <svg class="icon icon-xs"><use href="#i-arrow-right"/></svg></a>
+              </div>
+            </section>
+
+            <section class="card activity-card">
+              <div class="activity-head">
+                <div>
+                  <div class="eyebrow">LEARNING PULSE</div>
+                  <div class="activity-total"><b>8h 30m</b><span>本周学习</span><span class="delta">+22%</span></div>
+                </div>
+                <div class="card-link">目标 12h <svg class="icon icon-xs"><use href="#i-arrow-up-right"/></svg></div>
+              </div>
+              <div class="activity-chart">
+                <div class="bar-col"><div class="bar" style="height:42%"></div><span class="day">一</span></div>
+                <div class="bar-col"><div class="bar" style="height:64%"></div><span class="day">二</span></div>
+                <div class="bar-col"><div class="bar" style="height:38%"></div><span class="day">三</span></div>
+                <div class="bar-col today"><div class="bar" style="height:82%"></div><span class="day">四</span></div>
+                <div class="bar-col"><div class="bar" style="height:48%"></div><span class="day">五</span></div>
+                <div class="bar-col"><div class="bar" style="height:66%"></div><span class="day">六</span></div>
+                <div class="bar-col"><div class="bar" style="height:29%"></div><span class="day">日</span></div>
+              </div>
+            </section>
+          </div>
+
+          <div class="dash-col">
+            <section class="card right-card">
+              <div class="week-top">
+                <div>
+                  <div class="eyebrow">WEEKLY GOAL</div>
+                  <div class="card-title" style="margin-top:5px">本周学习</div>
+                </div>
+                <span class="delta">+22%</span>
+              </div>
+              <div class="week-value"><b>8.5</b><span>/ 12h</span></div>
+              <div class="week-bar"><div class="progress lime"><span></span></div></div>
+              <div class="week-days">
+                <span class="week-day done"><i></i>一</span>
+                <span class="week-day done"><i></i>二</span>
+                <span class="week-day done"><i></i>三</span>
+                <span class="week-day done today"><i></i>四</span>
+                <span class="week-day"><i></i>五</span>
+                <span class="week-day"><i></i>六</span>
+                <span class="week-day"><i></i>日</span>
+              </div>
+              <div class="week-stats">
+                <span class="week-stat"><svg class="icon"><use href="#i-check-square"/></svg><b>18 / 24</b> 任务</span>
+                <span class="week-stat"><svg class="icon"><use href="#i-flame"/></svg><b>6 天</b> 连续</span>
+              </div>
+            </section>
+
+            <section class="card right-card">
+              <div class="card-head">
+                <div>
+                  <div class="eyebrow">UP NEXT</div>
+                  <div class="card-title" style="margin-top:5px">接下来</div>
+                </div>
+                <a class="card-link" href="#jobs">全部 <svg class="icon icon-xs"><use href="#i-chevron-right"/></svg></a>
+              </div>
+              <div class="next-list">
+                <div class="next-item">
+                  <span class="avatar-sq blue">字</span>
+                  <div class="next-copy">
+                    <div class="next-title">字节跳动 · 前端开发</div>
+                    <div class="next-meta"><svg class="icon"><use href="#i-calendar"/></svg>明天 14:00 · 二面</div>
+                  </div>
+                  <span class="chip chip-amber next-stage">面试中</span>
+                </div>
+                <div class="next-item">
+                  <span class="avatar-sq orange">小</span>
+                  <div class="next-copy">
+                    <div class="next-title">小红书 · Web 前端</div>
+                    <div class="next-meta coral"><svg class="icon"><use href="#i-clock"/></svg>今天 18:00 前跟进</div>
+                  </div>
+                  <span class="chip chip-blue next-stage">已投递</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="card right-card">
+              <div class="card-head">
+                <div>
+                  <div class="eyebrow">KNOWLEDGE</div>
+                  <div class="card-title" style="margin-top:5px">最近知识</div>
+                </div>
+                <a class="card-link" href="#knowledge">知识库 <svg class="icon icon-xs"><use href="#i-chevron-right"/></svg></a>
+              </div>
+              <div class="recent-list">
+                <div class="recent-item">
+                  <span class="recent-type question"></span>
+                  <div class="recent-copy"><div class="recent-title">ref 与 reactive 的边界</div><div class="recent-meta">Vue · 今天 14:32</div></div>
+                  <svg class="icon"><use href="#i-arrow-up-right"/></svg>
+                </div>
+                <div class="recent-item">
+                  <span class="recent-type note"></span>
+                  <div class="recent-copy"><div class="recent-title">浏览器渲染流程速查</div><div class="recent-meta">浏览器 · 昨天</div></div>
+                  <svg class="icon"><use href="#i-arrow-up-right"/></svg>
+                </div>
+                <div class="recent-item">
+                  <span class="recent-type snippet"></span>
+                  <div class="recent-copy"><div class="recent-title">防抖与节流的通用实现</div><div class="recent-meta">JavaScript · 2 天前</div></div>
+                  <svg class="icon"><use href="#i-arrow-up-right"/></svg>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============================================================
+     SCREEN 02 — TASKS
+     ============================================================ -->
+<section class="screen" id="tasks">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#overview">
+        <span class="brand-mark">D</span>
+        <span><span class="brand-name">DevFlow</span><span class="brand-sub">PERSONAL OS</span></span>
+      </a>
+      <div class="workspace">
+        <span class="workspace-mark">01</span>
+        <div class="workspace-copy">
+          <div class="workspace-label">Workspace</div>
+          <div class="workspace-name">个人工作台 · 求职季</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-chevron-down"/></svg>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="#overview"><svg class="icon"><use href="#i-grid"/></svg><span>概览</span></a>
+        <a class="nav-item active" href="#tasks"><svg class="icon"><use href="#i-check-square"/></svg><span>任务</span></a>
+        <a class="nav-item" href="#knowledge"><svg class="icon"><use href="#i-book-open"/></svg><span>知识库</span></a>
+        <a class="nav-item" href="#jobs"><svg class="icon"><use href="#i-briefcase"/></svg><span>求职</span><span class="nav-count">6</span></a>
+        <a class="nav-item" href="#insights"><svg class="icon"><use href="#i-chart"/></svg><span>复盘</span></a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="side-goal">
+        <div class="side-goal-head">
+          <span class="side-goal-label">WEEKLY GOAL</span>
+          <svg class="icon icon-xs" style="color:#8d9685"><use href="#i-target"/></svg>
+        </div>
+        <div class="side-goal-value">8.5 <span>/ 12 小时</span></div>
+        <div class="side-goal-bar"><span></span></div>
+        <div class="side-goal-foot"><span>本周学习</span><span>还差 3.5h</span></div>
+      </div>
+      <div class="profile">
+        <span class="avatar">陈</span>
+        <div class="profile-copy">
+          <div class="profile-name">陈序</div>
+          <div class="profile-role">FRONTEND · JOB HUNT</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-settings"/></svg>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumbs">工作台 <span class="slash">/</span> <strong>任务</strong></div>
+        <div class="top-actions">
+          <div class="search-pill"><svg class="icon icon-sm"><use href="#i-search"/></svg><span>搜索任务、笔记、公司…</span><kbd>⌘ K</kbd></div>
+          <button class="icon-btn" aria-label="切换主题"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button>
+          <a class="btn btn-lime" href="#tasks"><svg class="icon"><use href="#i-plus"/></svg>新建任务</a>
+        </div>
+      </header>
+
+      <div class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow"><span class="signal"></span> PLANNING · THU 22 OCT</div>
+            <h1>任务</h1>
+            <p class="page-sub">把今天收束成可以完成的几件事，而不是一张无止境的清单。</p>
+          </div>
+          <div class="head-actions">
+            <a class="btn btn-ghost" href="#insights"><svg class="icon"><use href="#i-clock"/></svg>记录学习</a>
+            <button class="btn btn-primary"><svg class="icon"><use href="#i-plus"/></svg>新建任务</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="segmented">
+            <a class="on" href="#tasks">今天 <span class="count">5</span></a>
+            <a href="#tasks">本周 <span class="count">12</span></a>
+            <a href="#tasks">全部 <span class="count">24</span></a>
+          </div>
+          <div class="toolbar-spacer"></div>
+          <div class="toolbar-search"><svg class="icon"><use href="#i-search"/></svg><span>搜索任务</span></div>
+          <button class="icon-btn" aria-label="筛选任务"><svg class="icon icon-sm"><use href="#i-filter"/></svg></button>
+        </div>
+
+        <div class="tasks-grid">
+          <section class="card task-list-card">
+            <div class="quick-add">
+              <span class="quick-plus"><svg class="icon icon-xs"><use href="#i-plus"/></svg></span>
+              <span class="placeholder">添加任务，按 Enter 创建…</span>
+              <span class="chip chip-learning">学习</span>
+              <span class="today-label"><svg class="icon"><use href="#i-calendar"/></svg>今天</span>
+            </div>
+
+            <div class="task-scroll">
+              <div class="group-label">今天 <b>5</b><span class="line"></span><span class="mini-add">+</span></div>
+
+              <div class="list-row done">
+                <span class="check done"><svg class="icon"><use href="#i-check"/></svg></span>
+                <div class="list-copy">
+                  <div class="list-title">完成 DevFlow 任务模块交互稿</div>
+                  <div class="list-meta"><span class="chip chip-project">项目</span><span>90 min</span><span class="sep"></span><span>完成于 13:12</span></div>
+                </div>
+                <div class="list-right"><span class="priority p0">P0</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="list-row">
+                <span class="check"></span>
+                <div class="list-copy">
+                  <div class="list-title">整理 Vue 响应式笔记，补一张依赖收集图</div>
+                  <div class="list-meta"><span class="chip chip-learning">学习</span><span>45 min</span><span class="sep"></span><span>知识库关联</span></div>
+                </div>
+                <div class="list-right"><span class="list-date">今天</span><span class="priority p0">P0</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="list-row">
+                <span class="check"></span>
+                <div class="list-copy">
+                  <div class="list-title">刷 10 道 JavaScript 事件循环题</div>
+                  <div class="list-meta"><span class="chip chip-learning">学习</span><span>40 min</span><span class="sep"></span><span>刷题</span></div>
+                </div>
+                <div class="list-right"><span class="list-date">今天</span><span class="priority p1">P1</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="list-row overdue-row">
+                <span class="check"></span>
+                <div class="list-copy">
+                  <div class="list-title">跟进字节跳动 HR 反馈</div>
+                  <div class="list-meta"><span class="chip chip-job">求职</span><span>15 min</span><span class="sep"></span><span>关联：字节跳动 · 前端开发</span></div>
+                </div>
+                <div class="list-right"><span class="list-date"><svg class="icon"><use href="#i-clock"/></svg>18:00</span><span class="priority p0">P0</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="list-row">
+                <span class="check"></span>
+                <div class="list-copy">
+                  <div class="list-title">投递 2 个匹配岗位</div>
+                  <div class="list-meta"><span class="chip chip-job">求职</span><span>30 min</span><span class="sep"></span><span>收藏夹待投 2</span></div>
+                </div>
+                <div class="list-right"><span class="list-date">今天</span><span class="priority p1">P1</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="group-label">本周稍后 <b>4</b><span class="line"></span><span class="mini-add">+</span></div>
+
+              <div class="list-row">
+                <span class="check"></span>
+                <div class="list-copy">
+                  <div class="list-title">准备二面项目深挖问题</div>
+                  <div class="list-meta"><span class="chip chip-job">求职</span><span>60 min</span><span class="sep"></span><span>字节跳动</span></div>
+                </div>
+                <div class="list-right"><span class="list-date">明天</span><span class="priority p0">P0</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="list-row">
+                <span class="check"></span>
+                <div class="list-copy">
+                  <div class="list-title">实现 DevFlow 本地数据层</div>
+                  <div class="list-meta"><span class="chip chip-project">项目</span><span>120 min</span><span class="sep"></span><span>设计稿后开始</span></div>
+                </div>
+                <div class="list-right"><span class="list-date">周六</span><span class="priority p1">P1</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="list-row">
+                <span class="check"></span>
+                <div class="list-copy">
+                  <div class="list-title">复习 HTTP 缓存：强缓存与协商缓存</div>
+                  <div class="list-meta"><span class="chip chip-learning">学习</span><span>35 min</span><span class="sep"></span><span>面试高频</span></div>
+                </div>
+                <div class="list-right"><span class="list-date">周日</span><span class="priority p1">P1</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="list-row">
+                <span class="check"></span>
+                <div class="list-copy">
+                  <div class="list-title">写 3 条本周复盘</div>
+                  <div class="list-meta"><span class="chip chip-life">生活</span><span>20 min</span><span class="sep"></span><span>周日晚</span></div>
+                </div>
+                <div class="list-right"><span class="list-date">周日</span><span class="priority p2">P2</span><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              </div>
+
+              <div class="completed-toggle"><svg class="icon"><use href="#i-chevron-right"/></svg><b>已完成 18</b><span>· 本周</span></div>
+            </div>
+          </section>
+
+          <div class="tasks-side">
+            <section class="card side-card rhythm-card">
+              <div class="card-head">
+                <div>
+                  <div class="eyebrow">WEEK RHYTHM</div>
+                  <div class="card-title" style="margin-top:5px">本周节奏</div>
+                </div>
+                <span class="tag">第 4 周</span>
+              </div>
+              <div class="rhythm-days">
+                <div class="rhythm-day has"><span class="wd">一</span><span class="num">19</span><span class="count">3</span></div>
+                <div class="rhythm-day has"><span class="wd">二</span><span class="num">20</span><span class="count">4</span></div>
+                <div class="rhythm-day has"><span class="wd">三</span><span class="num">21</span><span class="count">2</span></div>
+                <div class="rhythm-day today"><span class="wd">四</span><span class="num">22</span><span class="count">5</span></div>
+                <div class="rhythm-day"><span class="wd">五</span><span class="num">23</span><span class="count">0</span></div>
+                <div class="rhythm-day"><span class="wd">六</span><span class="num">24</span><span class="count">0</span></div>
+                <div class="rhythm-day"><span class="wd">日</span><span class="num">25</span><span class="count">0</span></div>
+              </div>
+              <div class="rhythm-foot"><span>本周已安排 <b>14</b> 项</span><span>预计 <b>6h 40m</b></span></div>
+              <div class="rhythm-insight"><span class="pulse"></span><span>周四效率最高 · 日均 2.1h</span><b>+18%</b></div>
+            </section>
+
+            <section class="card side-card distribution-card">
+              <div class="card-head">
+                <div>
+                  <div class="eyebrow">BALANCE</div>
+                  <div class="card-title" style="margin-top:5px">精力分配</div>
+                </div>
+                <span class="card-link">本周</span>
+              </div>
+              <div class="mini-stack"><span class="learn" style="width:42%"></span><span class="job" style="width:29%"></span><span class="project" style="width:21%"></span><span class="life" style="width:8%"></span></div>
+              <div class="legend">
+                <div class="legend-item"><i></i>学习 <b>8</b></div>
+                <div class="legend-item"><i></i>求职 <b>5</b></div>
+                <div class="legend-item"><i></i>项目 <b>4</b></div>
+                <div class="legend-item"><i></i>生活 <b>2</b></div>
+              </div>
+              <div class="balance-note"><span>学习占比 42%</span><span>求职 <b>+8%</b></span></div>
+              <a class="balance-link" href="#tasks">调整本周重点 <svg class="icon icon-xs"><use href="#i-arrow-right"/></svg></a>
+            </section>
+
+            <section class="card side-card overdue-card">
+              <div class="card-head">
+                <div class="card-title">需要处理</div>
+                <span class="chip chip-coral">1 项逾期</span>
+              </div>
+              <div class="overdue-copy">别让它继续沉底。今天只花 10 分钟收尾。</div>
+              <div class="overdue-mini"><span>完善旧项目 README 的技术亮点</span><a href="#tasks">移到今天</a></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============================================================
+     SCREEN 03 — KNOWLEDGE
+     ============================================================ -->
+<section class="screen" id="knowledge">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#overview">
+        <span class="brand-mark">D</span>
+        <span><span class="brand-name">DevFlow</span><span class="brand-sub">PERSONAL OS</span></span>
+      </a>
+      <div class="workspace">
+        <span class="workspace-mark">01</span>
+        <div class="workspace-copy">
+          <div class="workspace-label">Workspace</div>
+          <div class="workspace-name">个人工作台 · 求职季</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-chevron-down"/></svg>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="#overview"><svg class="icon"><use href="#i-grid"/></svg><span>概览</span></a>
+        <a class="nav-item" href="#tasks"><svg class="icon"><use href="#i-check-square"/></svg><span>任务</span><span class="nav-count">8</span></a>
+        <a class="nav-item active" href="#knowledge"><svg class="icon"><use href="#i-book-open"/></svg><span>知识库</span></a>
+        <a class="nav-item" href="#jobs"><svg class="icon"><use href="#i-briefcase"/></svg><span>求职</span><span class="nav-count">6</span></a>
+        <a class="nav-item" href="#insights"><svg class="icon"><use href="#i-chart"/></svg><span>复盘</span></a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="side-goal">
+        <div class="side-goal-head">
+          <span class="side-goal-label">WEEKLY GOAL</span>
+          <svg class="icon icon-xs" style="color:#8d9685"><use href="#i-target"/></svg>
+        </div>
+        <div class="side-goal-value">8.5 <span>/ 12 小时</span></div>
+        <div class="side-goal-bar"><span></span></div>
+        <div class="side-goal-foot"><span>本周学习</span><span>还差 3.5h</span></div>
+      </div>
+      <div class="profile">
+        <span class="avatar">陈</span>
+        <div class="profile-copy">
+          <div class="profile-name">陈序</div>
+          <div class="profile-role">FRONTEND · JOB HUNT</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-settings"/></svg>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumbs">工作台 <span class="slash">/</span> <strong>知识库</strong></div>
+        <div class="top-actions">
+          <div class="search-pill"><svg class="icon icon-sm"><use href="#i-search"/></svg><span>搜索任务、笔记、公司…</span><kbd>⌘ K</kbd></div>
+          <button class="icon-btn" aria-label="切换主题"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button>
+          <a class="btn btn-lime" href="#knowledge"><svg class="icon"><use href="#i-plus"/></svg>新建知识</a>
+        </div>
+      </header>
+
+      <div class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow"><span class="signal"></span> LIBRARY · 12 ITEMS</div>
+            <h1>知识库</h1>
+            <p class="page-sub">把理解写下来，才有可能在面试里讲清楚。</p>
+          </div>
+          <div class="head-actions">
+            <a class="btn btn-ghost" href="#insights"><svg class="icon"><use href="#i-clock"/></svg>记录学习</a>
+            <button class="btn btn-primary"><svg class="icon"><use href="#i-plus"/></svg>新建知识<svg class="icon icon-xs"><use href="#i-chevron-down"/></svg></button>
+          </div>
+        </div>
+
+        <div class="knowledge-grid">
+          <section class="card library-panel">
+            <div class="library-search">
+              <svg class="icon"><use href="#i-search"/></svg><span>搜索标题、内容、标签…</span><kbd>⌘K</kbd>
+            </div>
+            <div class="library-tabs">
+              <span class="library-tab active">全部 <span class="n">12</span></span>
+              <span class="library-tab">笔记 <span class="n">6</span></span>
+              <span class="library-tab">面试题 <span class="n">4</span></span>
+              <span class="library-tab">片段 <span class="n">2</span></span>
+            </div>
+            <div class="filter-row">
+              <span class="filter-chip on">全部主题 <svg class="icon"><use href="#i-chevron-down"/></svg></span>
+              <span class="filter-chip">Vue</span>
+              <span class="filter-chip">JavaScript</span>
+              <span class="filter-chip"><svg class="icon"><use href="#i-filter"/></svg></span>
+            </div>
+
+            <div class="library-list">
+              <div class="k-item active">
+                <div class="k-type question"><i></i>面试题 <span style="margin-left:auto">14:32</span></div>
+                <div class="k-title">Vue 3 响应式：ref 与 reactive 的边界</div>
+                <div class="k-excerpt">ref 通过 getter/setter 追踪，reactive 通过 Proxy 代理对象。真正要讲清楚的是使用边界…</div>
+                <div class="k-meta"><span>Vue</span><span class="dot"></span><span>响应式</span><span class="mastery"><span class="mastery-dots"><i class="on"></i><i class="on"></i><i></i></span>在学</span></div>
+              </div>
+
+              <div class="k-item">
+                <div class="k-type"><i></i>笔记 <span style="margin-left:auto">昨天</span></div>
+                <div class="k-title">浏览器渲染流程速查</div>
+                <div class="k-excerpt">从 HTML 解析到合成层：DOM、CSSOM、布局、绘制、合成，以及会触发重排的常见操作。</div>
+                <div class="k-meta"><span>浏览器</span><span class="dot"></span><span>渲染</span><span class="mastery"><span class="mastery-dots"><i class="on"></i><i class="on"></i><i class="on"></i></span>熟练</span></div>
+              </div>
+
+              <div class="k-item">
+                <div class="k-type snippet"><i></i>代码片段 <span style="margin-left:auto">2 天前</span></div>
+                <div class="k-title">防抖与节流的通用实现</div>
+                <div class="k-excerpt">带取消方法的 debounce / throttle，支持 leading 与 trailing 参数。</div>
+                <div class="k-meta"><span>JavaScript</span><span class="dot"></span><span>性能</span><span class="mastery"><span class="mastery-dots"><i class="on"></i><i class="on"></i><i></i></span>在学</span></div>
+              </div>
+
+              <div class="k-item">
+                <div class="k-type question"><i></i>面试题 <span style="margin-left:auto">3 天前</span></div>
+                <div class="k-title">事件循环：宏任务与微任务</div>
+                <div class="k-excerpt">Promise.then、queueMicrotask、setTimeout 的执行顺序，以及渲染时机。</div>
+                <div class="k-meta"><span>JavaScript</span><span class="dot"></span><span>异步</span><span class="mastery"><span class="mastery-dots"><i class="on"></i><i></i><i></i></span>生疏</span></div>
+              </div>
+
+              <div class="k-item">
+                <div class="k-type"><i></i>笔记 <span style="margin-left:auto">4 天前</span></div>
+                <div class="k-title">HTTP 缓存：强缓存与协商缓存</div>
+                <div class="k-excerpt">Cache-Control、ETag、Last-Modified 的优先级，以及前端部署时的缓存策略。</div>
+                <div class="k-meta"><span>网络</span><span class="dot"></span><span>缓存</span><span class="mastery"><span class="mastery-dots"><i class="on"></i><i class="on"></i><i></i></span>在学</span></div>
+              </div>
+            </div>
+
+            <div class="library-quick"><svg class="icon"><use href="#i-plus"/></svg><b>新建一条知识</b><span>笔记 / 面试题 / 片段</span></div>
+            <div class="library-foot"><span>12 条知识 · 4 个主题</span><span class="sync"><svg class="icon"><use href="#i-check"/></svg>已保存到本机</span></div>
+          </section>
+
+          <section class="card doc-panel">
+            <div class="doc-head">
+              <div class="doc-breadcrumb"><span>知识库</span><svg class="icon"><use href="#i-chevron-right"/></svg><span>面试题</span><svg class="icon"><use href="#i-chevron-right"/></svg><span style="color:#5d6357">Vue 响应式</span></div>
+              <div class="doc-actions">
+                <span class="save-state"><i></i>已自动保存 14:32</span>
+                <span class="icon-btn" style="width:28px;height:28px;border:0;background:transparent"><svg class="icon icon-sm"><use href="#i-pin"/></svg></span>
+                <span class="icon-btn" style="width:28px;height:28px;border:0;background:transparent"><svg class="icon icon-sm"><use href="#i-more"/></svg></span>
+              </div>
+            </div>
+
+            <div class="doc-body">
+              <div class="doc-kicker">
+                <span class="chip chip-amber">面试题</span>
+                <span class="tag">Vue</span>
+                <span class="tag">响应式</span>
+                <span class="tag">高频</span>
+              </div>
+              <h2 class="doc-title">Vue 3 响应式：ref 与 reactive 的边界</h2>
+              <div class="doc-meta">
+                <span>更新于今天 14:32</span><span class="sep"></span><span>3 次学习</span><span class="sep"></span><span>下次复习 3 天后</span>
+                <span class="mastery-inline" style="margin-left:auto"><span class="mastery-dots"><i class="on"></i><i class="on"></i><i></i></span><span class="mastery-pill">在学</span></span>
+              </div>
+
+              <div class="doc-toolbar">
+                <div class="doc-tabs">
+                  <span class="doc-tab on"><svg class="icon"><use href="#i-book-open"/></svg>阅读</span>
+                  <span class="doc-tab"><svg class="icon"><use href="#i-edit"/></svg>编辑</span>
+                </div>
+                <div class="doc-tools">
+                  <svg class="icon"><use href="#i-clock"/></svg><span style="font-size:9px">专注 25:00</span>
+                  <span style="width:1px;height:12px;background:#deddd4"></span>
+                  <svg class="icon"><use href="#i-arrow-up-right"/></svg>
+                </div>
+              </div>
+
+              <div class="prose">
+                <p>面试里更容易失分的，不是 API 怎么用，而是你说不清<strong>什么时候不该用它</strong>。</p>
+
+                <h3><span class="idx">01</span> 一句话回答</h3>
+                <p><code>ref</code> 通过 getter/setter 追踪单个值的读写，<code>reactive</code> 通过 <strong>Proxy</strong> 代理整个对象。基本类型用 <code>ref</code>，需要整体替换或解构时也要谨慎。</p>
+
+                <h3><span class="idx">02</span> 我的答案</h3>
+                <ul>
+                  <li><code>ref</code> 适合基本类型和需要保持引用的场景，模板中自动解包，脚本里要写 <code>.value</code>。</li>
+                  <li><code>reactive</code> 只对对象生效，解构会丢失响应性；需要解构时用 <code>toRefs</code>。</li>
+                  <li>从组合式函数返回状态时，优先返回 <code>ref</code>，调用方不需要关心响应式实现。</li>
+                </ul>
+
+<pre><span class="lang">TS</span><code><span class="kw">const</span> state = reactive({ count: <span class="str">0</span> })
+<span class="kw">const</span> count = ref(<span class="str">0</span>)
+
+watchEffect(() =&gt; {
+  console.log(state.count, count.value)
+})</code></pre>
+
+                <div class="callout"><b>面试表达：</b>先讲使用边界，再讲实现机制，最后补一个真实踩坑。比背源码更有说服力。</div>
+
+                <h3><span class="idx">03</span> 常见追问</h3>
+                <ul>
+                  <li>为什么 <code>reactive</code> 解构后会失去响应性？</li>
+                  <li><code>shallowRef</code> 适合什么场景？和 <code>ref</code> 的更新触发有什么区别？</li>
+                </ul>
+              </div>
+
+              <div class="doc-foot">
+                <div class="review"><svg class="icon"><use href="#i-refresh"/></svg><span>下次复习 · <b>3 天后</b> · 间隔重复</span></div>
+                <div class="mastery-switch">
+                  <span class="mastery-option">生疏</span>
+                  <span class="mastery-option on">在学</span>
+                  <span class="mastery-option">熟练</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============================================================
+     SCREEN 04 — JOBS
+     ============================================================ -->
+<section class="screen" id="jobs">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#overview">
+        <span class="brand-mark">D</span>
+        <span><span class="brand-name">DevFlow</span><span class="brand-sub">PERSONAL OS</span></span>
+      </a>
+      <div class="workspace">
+        <span class="workspace-mark">01</span>
+        <div class="workspace-copy">
+          <div class="workspace-label">Workspace</div>
+          <div class="workspace-name">个人工作台 · 求职季</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-chevron-down"/></svg>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="#overview"><svg class="icon"><use href="#i-grid"/></svg><span>概览</span></a>
+        <a class="nav-item" href="#tasks"><svg class="icon"><use href="#i-check-square"/></svg><span>任务</span><span class="nav-count">8</span></a>
+        <a class="nav-item" href="#knowledge"><svg class="icon"><use href="#i-book-open"/></svg><span>知识库</span></a>
+        <a class="nav-item active" href="#jobs"><svg class="icon"><use href="#i-briefcase"/></svg><span>求职</span></a>
+        <a class="nav-item" href="#insights"><svg class="icon"><use href="#i-chart"/></svg><span>复盘</span></a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="side-goal">
+        <div class="side-goal-head">
+          <span class="side-goal-label">WEEKLY GOAL</span>
+          <svg class="icon icon-xs" style="color:#8d9685"><use href="#i-target"/></svg>
+        </div>
+        <div class="side-goal-value">8.5 <span>/ 12 小时</span></div>
+        <div class="side-goal-bar"><span></span></div>
+        <div class="side-goal-foot"><span>本周学习</span><span>还差 3.5h</span></div>
+      </div>
+      <div class="profile">
+        <span class="avatar">陈</span>
+        <div class="profile-copy">
+          <div class="profile-name">陈序</div>
+          <div class="profile-role">FRONTEND · JOB HUNT</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-settings"/></svg>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumbs">工作台 <span class="slash">/</span> <strong>求职</strong></div>
+        <div class="top-actions">
+          <div class="search-pill"><svg class="icon icon-sm"><use href="#i-search"/></svg><span>搜索任务、笔记、公司…</span><kbd>⌘ K</kbd></div>
+          <button class="icon-btn" aria-label="切换主题"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button>
+          <button class="btn btn-lime"><svg class="icon"><use href="#i-plus"/></svg>添加投递</button>
+        </div>
+      </header>
+
+      <div class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow"><span class="signal"></span> PIPELINE · OCTOBER</div>
+            <h1>求职</h1>
+            <p class="page-sub">投递不是数量游戏，跟进才是。下一步永远比上一步重要。</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn btn-ghost"><svg class="icon"><use href="#i-filter"/></svg>筛选</button>
+            <button class="btn btn-primary"><svg class="icon"><use href="#i-plus"/></svg>添加投递</button>
+          </div>
+        </div>
+
+        <div class="jobs-stats">
+          <div class="card job-stat">
+            <div><div class="label">总投递</div><div class="value">12<small>个岗位</small></div></div>
+            <div class="spark"><i style="height:35%"></i><i style="height:52%"></i><i style="height:45%"></i><i style="height:68%"></i><i style="height:58%"></i><i class="on" style="height:86%"></i></div>
+          </div>
+          <div class="card job-stat">
+            <div><div class="label">面试中</div><div class="value">3<small>家公司</small></div></div>
+            <div class="trend up"><svg class="icon" style="width:9px;height:9px"><use href="#i-arrow-up-right"/></svg>+1</div>
+          </div>
+          <div class="card job-stat">
+            <div><div class="label">Offer</div><div class="value">1<small>待回复</small></div></div>
+            <div class="trend up"><svg class="icon" style="width:9px;height:9px"><use href="#i-check"/></svg>本周</div>
+          </div>
+          <div class="card job-stat">
+            <div><div class="label">待跟进</div><div class="value">2<small>项</small></div></div>
+            <div class="trend hot"><svg class="icon" style="width:9px;height:9px"><use href="#i-clock"/></svg>今天</div>
+          </div>
+        </div>
+
+        <div class="board">
+          <section class="board-col">
+            <div class="col-head"><span class="dot"></span><span class="name">收藏</span><span class="n">2</span><span class="add"><svg class="icon"><use href="#i-plus"/></svg></span></div>
+            <article class="job-card">
+              <div class="job-top"><span class="avatar-sq dark">字</span><div class="job-company"><b>字节跳动</b><span>前端开发工程师</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">北京 · 30–50K</span><span class="chip chip-lime">P0</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-edit"/></svg>完善作品集后投递</div>
+              <div class="job-foot"><span>收藏 2 天</span><span class="priority p0">P0</span></div>
+            </article>
+            <article class="job-card">
+              <div class="job-top"><span class="avatar-sq orange">小</span><div class="job-company"><b>小红书</b><span>Web 前端</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">上海 · 25–40K</span><span class="chip chip-amber">P1</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-calendar"/></svg>周五前投递</div>
+              <div class="job-foot"><span>收藏 1 天</span><span class="priority p1">P1</span></div>
+            </article>
+            <button class="col-add"><svg class="icon" style="width:11px;height:11px"><use href="#i-plus"/></svg>添加收藏</button>
+          </section>
+
+          <section class="board-col">
+            <div class="col-head"><span class="dot"></span><span class="name">已投递</span><span class="n">4</span><span class="add"><svg class="icon"><use href="#i-plus"/></svg></span></div>
+            <article class="job-card">
+              <div class="job-top"><span class="avatar-sq orange">美</span><div class="job-company"><b>美团</b><span>前端开发工程师</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">北京 · 25–40K</span><span class="chip chip-blue">已投</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-calendar"/></svg>周五跟进 HR</div>
+              <div class="job-foot"><span>投递 3 天</span><span class="priority p1">P1</span></div>
+            </article>
+            <article class="job-card">
+              <div class="job-top"><span class="avatar-sq purple">快</span><div class="job-company"><b>快手</b><span>前端开发</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">杭州 · 28–45K</span><span class="tag">已内推</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-clock"/></svg>等待笔试通知</div>
+              <div class="job-foot"><span>投递 5 天</span><span class="priority p1">P1</span></div>
+            </article>
+            <article class="job-card attention">
+              <div class="job-top"><span class="avatar-sq blue">得</span><div class="job-company"><b>得物</b><span>Web 前端</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">上海 · 25–38K</span><span class="chip chip-coral">待跟进</span></div>
+              <div class="job-next coral"><svg class="icon"><use href="#i-alert"/></svg>10/24 前跟进</div>
+              <div class="job-foot"><span>投递 6 天</span><span class="priority p0">P0</span></div>
+            </article>
+            <div class="job-foot" style="padding:0 3px;margin-top:auto">还有 1 个已投递 · 等待筛选</div>
+            <button class="col-add" style="margin-top:7px"><svg class="icon" style="width:11px;height:11px"><use href="#i-plus"/></svg>添加投递</button>
+          </section>
+
+          <section class="board-col">
+            <div class="col-head"><span class="dot"></span><span class="name">面试中</span><span class="n">3</span><span class="add"><svg class="icon"><use href="#i-plus"/></svg></span></div>
+            <article class="job-card attention">
+              <div class="job-top"><span class="avatar-sq dark">字</span><div class="job-company"><b>字节跳动</b><span>前端开发工程师</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">北京 · 30–50K</span><span class="chip chip-amber">二面</span></div>
+              <div class="job-next coral"><svg class="icon"><use href="#i-calendar"/></svg>明天 14:00 · 二面</div>
+              <div class="job-foot"><span>已投 5 天</span><span class="priority p0">P0</span></div>
+            </article>
+            <article class="job-card">
+              <div class="job-top"><span class="avatar-sq orange">小</span><div class="job-company"><b>小红书</b><span>Web 前端</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">上海 · 25–40K</span><span class="chip chip-amber">一面</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-calendar"/></svg>10/26 11:00 · 一面</div>
+              <div class="job-foot"><span>已投 4 天</span><span class="priority p1">P1</span></div>
+            </article>
+            <article class="job-card">
+              <div class="job-top"><span class="avatar-sq blue">蔚</span><div class="job-company"><b>蔚来</b><span>前端开发</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">上海 · 25–35K</span><span class="tag">笔试</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-clock"/></svg>10/24 19:00 · 笔试</div>
+              <div class="job-foot"><span>已投 2 天</span><span class="priority p2">P2</span></div>
+            </article>
+            <button class="col-add"><svg class="icon" style="width:11px;height:11px"><use href="#i-plus"/></svg>记录面试</button>
+          </section>
+
+          <section class="board-col">
+            <div class="col-head"><span class="dot"></span><span class="name">Offer</span><span class="n">1</span><span class="add"><svg class="icon"><use href="#i-plus"/></svg></span></div>
+            <article class="job-card" style="border-color:#cddda9;background:#fbfdf4">
+              <div class="job-top"><span class="avatar-sq green">AI</span><div class="job-company"><b>某 AI 创业公司</b><span>前端工程师</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">北京 · 30–40K</span><span class="chip chip-lime">Offer</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-clock"/></svg>10/25 前答复</div>
+              <div class="job-foot"><span>A 轮 · 20 人</span><span class="priority p1">P1</span></div>
+            </article>
+            <div class="offer-note">
+              <svg class="icon"><use href="#i-sparkles"/></svg>
+              <p>别只看薪资。把团队、成长和通勤放在一张纸上比较。</p>
+            </div>
+            <button class="col-add"><svg class="icon" style="width:11px;height:11px"><use href="#i-plus"/></svg>添加 Offer</button>
+          </section>
+
+          <section class="board-col col-closed">
+            <div class="col-head"><span class="dot"></span><span class="name">已结束</span><span class="n">2</span><span class="add"><svg class="icon"><use href="#i-plus"/></svg></span></div>
+            <article class="job-card" style="opacity:.78">
+              <div class="job-top"><span class="avatar-sq" style="background:#f1eee9;color:#8d8579;border:1px solid #e4dfd6">阿</span><div class="job-company"><b>阿里巴巴</b><span>前端开发</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">二面挂</span><span class="chip chip-neutral">已归档</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-edit"/></svg>复盘：项目深度不足</div>
+              <div class="job-foot"><span>10/18 结束</span></div>
+            </article>
+            <article class="job-card" style="opacity:.78">
+              <div class="job-top"><span class="avatar-sq" style="background:#f1eee9;color:#8d8579;border:1px solid #e4dfd6">拼</span><div class="job-company"><b>拼多多</b><span>前端开发</span></div><span class="more"><svg class="icon"><use href="#i-more"/></svg></span></div>
+              <div class="job-tags"><span class="tag">已拒绝</span><span class="chip chip-neutral">通勤</span></div>
+              <div class="job-next"><svg class="icon"><use href="#i-edit"/></svg>记录决策原因</div>
+              <div class="job-foot"><span>10/16 结束</span></div>
+            </article>
+            <div class="job-foot" style="padding:10px 3px;margin-top:auto">结束不代表失败，留下原因才有用。</div>
+            <button class="col-add" style="margin-top:7px"><svg class="icon" style="width:11px;height:11px"><use href="#i-plus"/></svg>归档岗位</button>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============================================================
+     SCREEN 05 — INSIGHTS
+     ============================================================ -->
+<section class="screen" id="insights">
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#overview">
+        <span class="brand-mark">D</span>
+        <span><span class="brand-name">DevFlow</span><span class="brand-sub">PERSONAL OS</span></span>
+      </a>
+      <div class="workspace">
+        <span class="workspace-mark">01</span>
+        <div class="workspace-copy">
+          <div class="workspace-label">Workspace</div>
+          <div class="workspace-name">个人工作台 · 求职季</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-chevron-down"/></svg>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="#overview"><svg class="icon"><use href="#i-grid"/></svg><span>概览</span></a>
+        <a class="nav-item" href="#tasks"><svg class="icon"><use href="#i-check-square"/></svg><span>任务</span><span class="nav-count">8</span></a>
+        <a class="nav-item" href="#knowledge"><svg class="icon"><use href="#i-book-open"/></svg><span>知识库</span></a>
+        <a class="nav-item" href="#jobs"><svg class="icon"><use href="#i-briefcase"/></svg><span>求职</span><span class="nav-count">6</span></a>
+        <a class="nav-item active" href="#insights"><svg class="icon"><use href="#i-chart"/></svg><span>复盘</span></a>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="side-goal">
+        <div class="side-goal-head">
+          <span class="side-goal-label">WEEKLY GOAL</span>
+          <svg class="icon icon-xs" style="color:#8d9685"><use href="#i-target"/></svg>
+        </div>
+        <div class="side-goal-value">8.5 <span>/ 12 小时</span></div>
+        <div class="side-goal-bar"><span></span></div>
+        <div class="side-goal-foot"><span>本周学习</span><span>还差 3.5h</span></div>
+      </div>
+      <div class="profile">
+        <span class="avatar">陈</span>
+        <div class="profile-copy">
+          <div class="profile-name">陈序</div>
+          <div class="profile-role">FRONTEND · JOB HUNT</div>
+        </div>
+        <svg class="icon icon-sm"><use href="#i-settings"/></svg>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumbs">工作台 <span class="slash">/</span> <strong>复盘</strong></div>
+        <div class="top-actions">
+          <div class="search-pill"><svg class="icon icon-sm"><use href="#i-search"/></svg><span>搜索任务、笔记、公司…</span><kbd>⌘ K</kbd></div>
+          <button class="icon-btn" aria-label="切换主题"><svg class="icon icon-sm"><use href="#i-sun"/></svg></button>
+          <button class="btn btn-lime"><svg class="icon"><use href="#i-plus"/></svg>记录学习</button>
+        </div>
+      </header>
+
+      <div class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow"><span class="signal"></span> WEEKLY REVIEW · W42</div>
+            <h1>复盘</h1>
+            <p class="page-sub">不评价自己，只看数据，然后调整下一步。</p>
+          </div>
+          <div class="head-actions">
+            <div class="segmented"><span class="on">最近 7 天</span><span>最近 30 天</span></div>
+            <button class="btn btn-ghost"><svg class="icon"><use href="#i-arrow-up-right"/></svg>导出</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="card kpi">
+            <div><div class="label">完成任务</div><div class="value">18<small>/ 24</small></div><div class="delta"><svg class="icon"><use href="#i-arrow-up-right"/></svg>比上周多 4</div></div>
+            <div class="kpi-ring"><b>75%</b></div>
+          </div>
+          <div class="card kpi">
+            <div><div class="label">学习时长</div><div class="value">8.5<small>小时</small></div><div class="delta"><svg class="icon"><use href="#i-arrow-up-right"/></svg>+22%</div></div>
+            <div class="spark"><i style="height:35%"></i><i style="height:55%"></i><i style="height:43%"></i><i class="on" style="height:82%"></i><i style="height:62%"></i><i style="height:70%"></i><i style="height:46%"></i></div>
+          </div>
+          <div class="card kpi">
+            <div><div class="label">投递岗位</div><div class="value">12<small>个</small></div><div class="delta"><svg class="icon"><use href="#i-arrow-up-right"/></svg>本周 +3</div></div>
+            <div class="trend up" style="height:22px"><svg class="icon" style="width:9px;height:9px"><use href="#i-briefcase"/></svg>管线活跃</div>
+          </div>
+          <div class="card kpi">
+            <div><div class="label">面试场次</div><div class="value">3<small>场</small></div><div class="delta"><svg class="icon"><use href="#i-arrow-up-right"/></svg>+1</div></div>
+            <div class="trend" style="height:22px"><svg class="icon" style="width:9px;height:9px"><use href="#i-calendar"/></svg>2 场待进行</div>
+          </div>
+        </div>
+
+        <div class="insights-main">
+          <section class="card chart-card">
+            <div class="chart-head">
+              <div>
+                <div class="eyebrow">LEARNING INPUT</div>
+                <div class="card-title" style="margin-top:5px">学习投入</div>
+              </div>
+              <div class="legend-inline"><span><i></i>实际</span><span><i class="gray"></i>目标 12h / 周</span></div>
+            </div>
+            <div class="big-chart">
+              <div class="chart-grid"><span><em>3h</em></span><span><em>2h</em></span><span><em>1h</em></span><span><em>0</em></span></div>
+              <div class="target-line"><span>目标节奏</span></div>
+              <div class="chart-bars">
+                <div class="chart-bar"><div class="fill" style="height:34%"><div class="top"></div></div><span class="lbl">10/16</span></div>
+                <div class="chart-bar"><div class="fill" style="height:58%"><div class="top"></div></div><span class="lbl">10/17</span></div>
+                <div class="chart-bar"><div class="fill" style="height:28%"><div class="top"></div></div><span class="lbl">10/18</span></div>
+                <div class="chart-bar"><div class="fill" style="height:52%"><div class="top"></div></div><span class="lbl">10/19</span></div>
+                <div class="chart-bar"><div class="fill" style="height:44%"><div class="top"></div></div><span class="lbl">10/20</span></div>
+                <div class="chart-bar"><div class="fill" style="height:66%"><div class="top"></div></div><span class="lbl">10/21</span></div>
+                <div class="chart-bar today"><div class="fill lime" style="height:82%"><div class="top"></div></div><span class="lbl">今天</span></div>
+              </div>
+            </div>
+            <div class="chart-foot"><span>本周累计 <b>8h 30m</b> · 日均 <b>1h 13m</b></span><span>比上周多 <b>1h 32m</b></span></div>
+          </section>
+
+          <section class="card goal-card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">WEEKLY GOAL</div>
+                <div class="card-title" style="margin-top:5px">本周目标</div>
+              </div>
+              <span class="chip chip-lime">进行中</span>
+            </div>
+            <div class="goal-ring-wrap">
+              <div class="goal-ring"></div>
+              <div class="goal-center"><b>71<span>%</span></b><small>8.5 / 12h</small></div>
+            </div>
+            <div class="goal-note">按当前节奏，<b>周六</b>可以完成本周目标。还差 <b>3.5 小时</b>。</div>
+            <div class="week-stats" style="margin-top:10px;padding-top:9px">
+              <span class="week-stat"><svg class="icon"><use href="#i-flame"/></svg><b>6 天</b> 连续</span>
+              <span class="week-stat"><svg class="icon"><use href="#i-check-square"/></svg><b>18</b> 任务</span>
+              <span class="week-stat"><svg class="icon"><use href="#i-book-open"/></svg><b>4</b> 知识</span>
+            </div>
+          </section>
+        </div>
+
+        <div class="insights-bottom">
+          <section class="card mastery-card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">WEAK SPOTS</div>
+                <div class="card-title" style="margin-top:5px">主题掌握度</div>
+              </div>
+              <a class="card-link" href="#knowledge">查看知识 <svg class="icon icon-xs"><use href="#i-arrow-right"/></svg></a>
+            </div>
+            <div class="mastery-list">
+              <div class="mastery-row weak"><span class="mastery-name">浏览器渲染</span><span class="mastery-track"><i class="l"></i><i></i><i></i><i></i><i></i><i></i></span><span class="mastery-pct">42%</span></div>
+              <div class="mastery-row"><span class="mastery-name">工程化</span><span class="mastery-track"><i class="m"></i><i class="m"></i><i class="m"></i><i></i><i></i><i></i></span><span class="mastery-pct">55%</span></div>
+              <div class="mastery-row"><span class="mastery-name">Vue 响应式</span><span class="mastery-track"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></span><span class="mastery-pct">68%</span></div>
+              <div class="mastery-row"><span class="mastery-name">JavaScript</span><span class="mastery-track"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i></span><span class="mastery-pct">74%</span></div>
+              <div class="mastery-row"><span class="mastery-name">CSS 布局</span><span class="mastery-track"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></span><span class="mastery-pct">86%</span></div>
+            </div>
+          </section>
+
+          <section class="card funnel-card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">PIPELINE</div>
+                <div class="card-title" style="margin-top:5px">求职漏斗</div>
+              </div>
+              <span class="tag">25% 面试率</span>
+            </div>
+            <div class="funnel">
+              <div class="funnel-row"><span class="funnel-label">收藏</span><div class="funnel-bar"><span style="width:100%"></span></div><span class="funnel-num">12</span><span class="funnel-rate">—</span></div>
+              <div class="funnel-row"><span class="funnel-label">已投</span><div class="funnel-bar"><span style="width:100%"></span></div><span class="funnel-num">12</span><span class="funnel-rate">100%</span></div>
+              <div class="funnel-row"><span class="funnel-label">面试</span><div class="funnel-bar"><span style="width:38%"></span></div><span class="funnel-num">3</span><span class="funnel-rate">25%</span></div>
+              <div class="funnel-row"><span class="funnel-label">Offer</span><div class="funnel-bar"><span style="width:12%"></span></div><span class="funnel-num">1</span><span class="funnel-rate">8%</span></div>
+            </div>
+            <div class="chart-foot" style="margin-top:6px"><span>本周新增投递 <b>3</b></span><span>待跟进 <b>2</b></span></div>
+          </section>
+
+          <section class="card logs-card">
+            <div class="card-head">
+              <div>
+                <div class="eyebrow">STUDY LOG</div>
+                <div class="card-title" style="margin-top:5px">最近学习</div>
+              </div>
+              <a class="card-link" href="#knowledge">记录 <svg class="icon icon-xs"><use href="#i-plus"/></svg></a>
+            </div>
+            <div class="logs-list">
+              <div class="log-row"><span class="log-date">今天</span><span class="log-dot"></span><div class="log-copy"><b>Vue 响应式：依赖收集</b><span>阅读 · 完成知识卡片</span></div><span class="log-min">45m</span></div>
+              <div class="log-row"><span class="log-date">昨天</span><span class="log-dot"></span><div class="log-copy"><b>事件循环刷题</b><span>练习 · 10 道题</span></div><span class="log-min">35m</span></div>
+              <div class="log-row"><span class="log-date">10/20</span><span class="log-dot"></span><div class="log-copy"><b>浏览器渲染流程</b><span>阅读 · 整理速查表</span></div><span class="log-min">50m</span></div>
+              <div class="log-row"><span class="log-date">10/19</span><span class="log-dot"></span><div class="log-copy"><b>DevFlow 数据层重构</b><span>编码 · 进行中</span></div><span class="log-min">90m</span></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============================================================
+     SCREEN 06 — INTERACTION STATES
+     ============================================================ -->
+<section class="screen states-screen" id="states">
+  <div class="states-head">
+    <div>
+      <div class="eyebrow"><span class="signal"></span> DEVFLOW · UI STATES</div>
+      <h1>交互状态</h1>
+      <p class="sub">设计不只看默认态。空、无结果、确认、编辑、失败和移动端快捷操作都要有答案。</p>
+    </div>
+    <div class="legend">
+      <span><i class="green"></i>成功</span>
+      <span><i></i>危险</span>
+      <span><i class="blue"></i>信息</span>
+    </div>
+  </div>
+
+  <div class="states-grid">
+    <div class="state-panel">
+      <div class="state-label"><span class="num">01</span> EMPTY · KNOWLEDGE</div>
+      <div class="state-stage">
+        <div class="empty-box">
+          <div class="empty-icon"><svg class="icon"><use href="#i-book-open"/></svg></div>
+          <h4>还没有知识卡片</h4>
+          <p>把今天弄懂的一个概念写下来。面试前，你会感谢现在的自己。</p>
+          <div class="empty-actions"><span class="btn btn-primary btn-sm">新建笔记</span><span class="btn btn-ghost btn-sm">创建面试题</span></div>
+        </div>
+      </div>
+      <div class="state-note">知识库为空时给出一条明确路径和两个类型入口，不展示空白列表。</div>
+    </div>
+
+    <div class="state-panel">
+      <div class="state-label"><span class="num">02</span> NO RESULTS · SEARCH</div>
+      <div class="state-stage">
+        <div class="empty-box">
+          <div class="search-empty"><svg class="icon"><use href="#i-search"/></svg><span>搜索 <b>“响应式”</b></span><a>清除</a></div>
+          <h4 style="margin-top:14px">没有匹配的知识</h4>
+          <p>换一个关键词，或按技术主题浏览。也可以把这次搜索变成一条新笔记。</p>
+          <div class="empty-actions"><span class="btn btn-ghost btn-sm">清除搜索</span><span class="btn btn-primary btn-sm">新建知识</span></div>
+        </div>
+      </div>
+      <div class="state-note">检索无结果时保留搜索词，提供清除和新建两个出口。</div>
+    </div>
+
+    <div class="state-panel">
+      <div class="state-label"><span class="num">03</span> DESTRUCTIVE · CONFIRM</div>
+      <div class="state-stage modal-stage">
+        <div class="modal-mini">
+          <h4>删除这条知识？</h4>
+          <p>删除后无法恢复。关联的学习记录会保留，但不再指向这条知识。</p>
+          <div class="modal-target">“Vue 3 响应式：ref 与 reactive 的边界”</div>
+          <div class="modal-actions"><span class="btn btn-ghost btn-sm">取消</span><span class="btn btn-danger btn-sm">确认删除</span></div>
+        </div>
+      </div>
+      <div class="state-note">删除知识、投递、清空数据必须二次确认；普通任务删除用撤销。</div>
+    </div>
+
+    <div class="state-panel">
+      <div class="state-label"><span class="num">04</span> EDIT · TASK DRAWER</div>
+      <div class="state-stage drawer-stage">
+        <div class="drawer">
+          <div class="drawer-head"><h4>编辑任务</h4><span class="icon-btn"><svg class="icon"><use href="#i-x"/></svg></span></div>
+          <div class="drawer-field"><label>标题</label><div class="drawer-input">完成 DevFlow 任务模块交互稿</div></div>
+          <div class="drawer-row">
+            <div class="drawer-field"><label>分类</label><div class="drawer-chip on">项目</div></div>
+            <div class="drawer-field"><label>优先级</label><div class="drawer-chip on">P0</div></div>
+          </div>
+          <div class="drawer-row">
+            <div class="drawer-field"><label>日期</label><div class="drawer-input"><svg class="icon" style="width:10px;height:10px;margin-right:5px"><use href="#i-calendar"/></svg>今天</div></div>
+            <div class="drawer-field"><label>预计</label><div class="drawer-input">90 min</div></div>
+          </div>
+          <div class="drawer-field"><label>备注</label><div class="drawer-input area">补充空状态、错误态和移动端交互…</div></div>
+          <div class="drawer-foot"><span class="btn btn-ghost btn-sm">取消</span><span class="btn btn-primary btn-sm">保存修改</span></div>
+        </div>
+      </div>
+      <div class="state-note">桌面端从右侧打开编辑抽屉，保留当前列表上下文，关闭后焦点回到原任务。</div>
+    </div>
+
+    <div class="state-panel">
+      <div class="state-label"><span class="num">05</span> ERROR · SAVE / RETRY</div>
+      <div class="state-stage error-stage">
+        <div class="error-banner"><svg class="icon"><use href="#i-alert"/></svg><div><b>保存失败</b><p>浏览器本地存储空间不足，刚才的修改还在内存里。</p></div><a>重试</a></div>
+        <div class="field-error">Vue 3 响应式：ref 与 reactive 的边界</div>
+        <div class="field-error-msg"><svg class="icon"><use href="#i-alert"/></svg>请先释放存储空间，或导出数据后清理旧记录</div>
+        <div class="success-banner"><svg class="icon"><use href="#i-check"/></svg>已恢复上一版本 · 今天 14:28<a>查看</a></div>
+      </div>
+      <div class="state-note">保存失败要说明原因、数据是否还在，并提供重试与导出入口。</div>
+    </div>
+
+    <div class="state-panel">
+      <div class="state-label"><span class="num">06</span> MOBILE · QUICK ADD</div>
+      <div class="state-stage" style="background:#e8e5dc">
+        <div class="state-phone">
+          <div class="phone-status"><span>9:41</span><span>DevFlow</span></div>
+          <div class="phone-head"><small>TASKS · TODAY</small><h5>任务</h5></div>
+          <div class="phone-card">
+            <div class="phone-task"><span class="check done"><svg class="icon"><use href="#i-check"/></svg></span><span style="text-decoration:line-through;color:#9a9f92">整理 Vue 响应式笔记</span></div>
+            <div class="phone-task"><span class="check"></span><span>刷 10 道事件循环题</span></div>
+            <div class="phone-task"><span class="check"></span><span style="color:#b75234">跟进字节跳动 HR 反馈</span></div>
+          </div>
+          <div class="phone-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-title">快速添加</div>
+            <div class="sheet-input">写下一个具体动作…</div>
+            <div class="sheet-chips"><span class="on">今天</span><span>学习</span><span>P0</span></div>
+            <div class="sheet-save">创建任务</div>
+          </div>
+          <div class="phone-fab"><svg class="icon"><use href="#i-plus"/></svg></div>
+          <div class="phone-nav"><svg class="icon on"><use href="#i-grid"/></svg><svg class="icon"><use href="#i-check-square"/></svg><svg class="icon"><use href="#i-book-open"/></svg><svg class="icon"><use href="#i-briefcase"/></svg></div>
+        </div>
+      </div>
+      <div class="state-note">移动端新建任务使用底部抽屉；主操作固定在拇指可触区，导航保持四项。</div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var screens = Array.prototype.slice.call(document.querySelectorAll('.screen'));
+    function activate() {
+      var id = (location.hash || '#overview').slice(1);
+      if (!document.getElementById(id)) id = 'overview';
+      screens.forEach(function (screen) {
+        screen.classList.toggle('active', screen.id === id);
+      });
+      document.title = 'DevFlow · ' + ({
+        overview: '概览', tasks: '任务', knowledge: '知识库',
+        jobs: '求职', insights: '复盘', states: '交互状态'
+      }[id] || '设计原型');
+    }
+    window.addEventListener('hashchange', activate);
+    activate();
+  }());
+</script>
+</body>
+</html>
