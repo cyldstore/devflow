@@ -1,0 +1,88 @@
+:root {
+  /* 原始层 */
+  --canvas: #f2f0e9;
+  --canvas-deep: #eae7df;
+  --panel: #fbfaf6;
+  --panel-bright: #fffefa;
+  --ink: #171a16;
+  --ink-soft: #343a31;
+  --muted: #74796e;
+  --muted-2: #969b8e;
+  --line: #deddd4;
+  --line-soft: #ebe9e1;
+  --line-strong: #c9c8bd;
+  --sidebar: #141713;
+  --sidebar-raised: #1b2019;
+  --sidebar-line: #2a3027;
+  --lime: #c8f56a;
+  --lime-deep: #a7dd3f;
+  --lime-soft: #ecf9cf;
+  --coral: #e85d3a;
+  --coral-soft: #ffede7;
+  --amber: #b87816;
+  --amber-soft: #fff4de;
+  --blue: #4667c9;
+  --blue-soft: #ecf0fc;
+  --sage: #557440;
+  --sage-soft: #eaf2df;
+  --cream: #eef1e8;
+  --font-sans:
+    'Segoe UI Variable Display', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'Cascadia Code', 'Cascadia Mono', Consolas, 'Microsoft YaHei UI', monospace;
+
+  /* 圆角刻度：按 design/styles.css 的实际分布归并 */
+  --radius-xs: 3px; /* 2–4px：标签、小方块 */
+  --radius-sm: 6px; /* 5–7px：导航项、小按钮 */
+  --radius-md: 9px; /* 8–10px：控件标准 */
+  --radius-lg: 15px; /* 12–15px：卡片标准 */
+  --radius-pill: 999px; /* 胶囊、进度条 */
+  --radius-circle: 50%; /* 头像、图标底 */
+
+  /* 间距刻度：2px 网格，覆盖原型中出现频率最高的值 */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 16px;
+  --space-8: 20px;
+  --space-9: 24px;
+  --space-10: 32px;
+
+  /* 字号刻度：原型是逐像素手调的，这里归并成 8 档，允许 ±1px 偏差 */
+  --text-2xs: 8px; /* 6–8.5px：角标、极小标签 */
+  --text-xs: 10px; /* 9–10.5px：辅助文字、元信息 */
+  --text-sm: 12px; /* 11–12.5px：次级正文、导航 */
+  --text-base: 13px; /* 正文基准 */
+  --text-lg: 16px; /* 小标题 */
+  --text-xl: 21px; /* 区块标题 */
+  --text-2xl: 26px; /* 页面主数字 */
+  --text-3xl: 33px; /* 首屏问候语 */
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.7;
+
+  /* 布局 */
+  --sidebar-width: 236px;
+  --gutter-page: 34px;
+
+  /* 语义层 */
+  --color-text: var(--ink-soft);
+  --color-text-strong: var(--ink);
+  --color-text-muted: var(--muted);
+  --color-background: var(--canvas);
+  --color-border: var(--line);
+  --color-danger: var(--coral);
+  --color-danger-soft: var(--coral-soft);
+  --color-accent: var(--lime);
+  --color-accent-soft: var(--lime-soft);
+  --color-accent-contrast: var(--ink);
+  --color-surface: var(--panel);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-raised: var(--sidebar-raised);
+  --color-sidebar-line: var(--sidebar-line);
+  --color-on-sidebar: var(--cream);
+}

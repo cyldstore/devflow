@@ -34,9 +34,9 @@ import { RouterLink, RouterView } from 'vue-router'
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  background: #171a16;
-  color: #eef1e8;
-  border-bottom: 1px solid #2a3027;
+  background: var(--color-sidebar);
+  color: var(--color-on-sidebar);
+  border-bottom: 1px solid var(--color-sidebar-line);
 }
 
 .brand {
@@ -55,7 +55,7 @@ import { RouterLink, RouterView } from 'vue-router'
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: #c8f56a;
+  background: var(--color-accent);
   color: #171a16;
   font-weight: 800;
 }
