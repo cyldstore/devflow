@@ -1,20 +1,22 @@
 <template>
   <aside class="sidebar">
     <nav class="nav" aria-label="主导航">
-      <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item">{{
-        item.label
-      }}</RouterLink>
+      <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item">
+        <Icon :name="item.icon" />
+        <span>{{ item.label }}</span>
+      </RouterLink>
     </nav>
   </aside>
 </template>
 
 <script setup lang="ts">
+import Icon from '@/components/ui/Icon.vue'
 const navItems = [
-  { to: '/', label: '概览' },
-  { to: '/tasks', label: '任务' },
-  { to: '/knowledge', label: '知识库' },
-  { to: '/jobs', label: '求职' },
-  { to: '/insights', label: '复盘' },
+  { to: '/', label: '概览', icon: 'grid' },
+  { to: '/tasks', label: '任务', icon: 'check-square' },
+  { to: '/knowledge', label: '知识库', icon: 'book-open' },
+  { to: '/jobs', label: '求职', icon: 'briefcase' },
+  { to: '/insights', label: '复盘', icon: 'chart' },
 ]
 </script>
 
