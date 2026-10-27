@@ -1,7 +1,14 @@
 <template>
   <aside class="sidebar">
     <nav class="nav" aria-label="主导航">
-      <RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item">
+      <RouterLink
+        v-for="item in navItems"
+        :key="item.to"
+        :to="item.to"
+        class="nav-item"
+        :aria-label="item.label"
+        :title="item.label"
+      >
         <Icon :name="item.icon" />
         <span>{{ item.label }}</span>
       </RouterLink>
@@ -61,5 +68,20 @@ const navItems = [
 .nav-item:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: -2px;
+}
+
+@media (max-width: 1023px) {
+  .sidebar {
+    padding: var(--space-5) var(--space-2);
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .nav-item span {
+    display: none;
+  }
 }
 </style>

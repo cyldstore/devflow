@@ -38,4 +38,10 @@ import AppTopbar from './AppTopbar.vue'
   overflow-y: auto;
   padding: var(--gutter-page);
 }
+
+@media (max-width: 1023px) {
+  .shell {
+    grid-template-columns: 72px 1fr;
+  }
+}
 </style>
