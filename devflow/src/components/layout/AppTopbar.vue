@@ -1,8 +1,8 @@
 <template>
   <header class="topbar">
-    <RouterLink class="brand" to="/">
+    <RouterLink class="brand" to="/" aria-label="DevFlow 首页">
       <span class="brand-mark">D</span>
-      <span>DevFlow</span>
+      <span class="brand-name">DevFlow</span>
     </RouterLink>
 
     <input
@@ -92,5 +92,32 @@
   background: var(--color-accent);
   color: var(--color-accent-contrast);
   font-weight: 600;
+}
+
+@media (max-width: 767px) {
+  .topbar {
+    gap: var(--space-3);
+    padding: 0 var(--space-5);
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .actions {
+    gap: var(--space-2);
+  }
+
+  .icon-btn,
+  .primary-btn {
+    padding: 0 var(--space-3);
+  }
+}
+
+.icon-btn:focus-visible,
+.primary-btn:focus-visible,
+.brand:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
 }
 </style>

@@ -52,6 +52,7 @@ import BottomNav from './BottomNav.vue'
     grid-template-columns: 1fr;
   }
 
+  /* 与 BottomNav 的高度保持一致 */
   .content {
     padding: var(--space-5);
     padding-bottom: calc(56px + env(safe-area-inset-bottom) + var(--space-5));

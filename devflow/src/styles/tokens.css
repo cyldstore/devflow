@@ -73,12 +73,14 @@
   --color-text: var(--ink-soft);
   --color-text-strong: var(--ink);
   --color-text-muted: var(--muted);
+  --color-text-faint: var(--muted-2);
   --color-background: var(--canvas);
   --color-border: var(--line);
   --color-danger: var(--coral);
   --color-danger-soft: var(--coral-soft);
   --color-accent: var(--lime);
   --color-accent-soft: var(--lime-soft);
+  --color-accent-strong: var(--lime-deep);
   --color-accent-contrast: var(--ink);
   --color-surface: var(--panel);
   --color-sidebar: var(--sidebar);
