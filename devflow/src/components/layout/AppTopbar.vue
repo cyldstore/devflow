@@ -13,12 +13,18 @@
     />
 
     <div class="actions">
-      <button type="button" class="icon-btn" aria-label="切换主题">主题</button>
-      <button type="button" class="primary-btn">快速新建</button>
+      <Button variant="ghost" aria-label="切换主题">主题</Button>
+      <Button variant="lime">
+        <Plus :size="14" aria-hidden="true" />
+        快速新建
+      </Button>
     </div>
   </header>
 </template>
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { Plus } from 'lucide-vue-next'
+import Button from '@/components/ui/Button.vue'
+</script>
 
 <style scoped>
 .topbar {
@@ -75,25 +81,6 @@
   flex: none;
 }
 
-.icon-btn,
-.primary-btn {
-  height: 34px;
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  cursor: pointer;
-}
-
-.primary-btn {
-  border-color: transparent;
-  background: var(--color-accent);
-  color: var(--color-accent-contrast);
-  font-weight: 600;
-}
-
 @media (max-width: 767px) {
   .topbar {
     gap: var(--space-3);
@@ -107,15 +94,8 @@
   .actions {
     gap: var(--space-2);
   }
-
-  .icon-btn,
-  .primary-btn {
-    padding: 0 var(--space-3);
-  }
 }
 
-.icon-btn:focus-visible,
-.primary-btn:focus-visible,
 .brand:focus-visible {
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
