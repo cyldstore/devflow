@@ -83,6 +83,8 @@
   --color-accent-strong: var(--lime-deep);
   --color-accent-contrast: var(--ink);
   --color-surface: var(--panel);
+  --color-primary: var(--ink);
+  --color-on-primary: var(--panel-bright);
   --color-sidebar: var(--sidebar);
   --color-sidebar-raised: var(--sidebar-raised);
   --color-sidebar-line: var(--sidebar-line);

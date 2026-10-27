@@ -1,20 +1,27 @@
 <template>
   <nav class="bottom-nav" aria-label="移动端主导航">
     <RouterLink v-for="item in items" :key="item.to" :to="item.to" class="tab">
-      <Icon :name="item.icon" :size="20" />
+      <component :is="item.icon" :size="20" :stroke-width="1.8" aria-hidden="true"></component>
       <span>{{ item.label }}</span>
     </RouterLink>
   </nav>
 </template>
 
 <script setup lang="ts">
-import Icon from '@/components/ui/Icon.vue'
+import type { Component } from 'vue'
+import { BookOpen, Briefcase, LayoutGrid, SquareCheck } from 'lucide-vue-next'
 
-const items = [
-  { to: '/', label: '概览', icon: 'grid' },
-  { to: '/tasks', label: '任务', icon: 'check-square' },
-  { to: '/knowledge', label: '知识库', icon: 'book-open' },
-  { to: '/jobs', label: '求职', icon: 'briefcase' },
+interface NavItem {
+  to: string
+  label: string
+  icon: Component
+}
+
+const items: NavItem[] = [
+  { to: '/', label: '概览', icon: LayoutGrid },
+  { to: '/tasks', label: '任务', icon: SquareCheck },
+  { to: '/knowledge', label: '知识库', icon: BookOpen },
+  { to: '/jobs', label: '求职', icon: Briefcase },
 ]
 </script>
 

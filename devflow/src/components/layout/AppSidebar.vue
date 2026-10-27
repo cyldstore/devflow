@@ -9,7 +9,7 @@
         :aria-label="item.label"
         :title="item.label"
       >
-        <Icon :name="item.icon" />
+        <component :is="item.icon" :size="17" :stroke-width="1.8" aria-hidden="true" />
         <span>{{ item.label }}</span>
       </RouterLink>
     </nav>
@@ -17,13 +17,20 @@
 </template>
 
 <script setup lang="ts">
-import Icon from '@/components/ui/Icon.vue'
-const navItems = [
-  { to: '/', label: '概览', icon: 'grid' },
-  { to: '/tasks', label: '任务', icon: 'check-square' },
-  { to: '/knowledge', label: '知识库', icon: 'book-open' },
-  { to: '/jobs', label: '求职', icon: 'briefcase' },
-  { to: '/insights', label: '复盘', icon: 'chart' },
+import type { Component } from 'vue'
+import { BookOpen, Briefcase, ChartLine, LayoutGrid, SquareCheck } from 'lucide-vue-next'
+interface NavItem {
+  to: string
+  label: string
+  icon: Component
+}
+
+const navItems: NavItem[] = [
+  { to: '/', label: '概览', icon: LayoutGrid },
+  { to: '/tasks', label: '任务', icon: SquareCheck },
+  { to: '/knowledge', label: '知识库', icon: BookOpen },
+  { to: '/jobs', label: '求职', icon: Briefcase },
+  { to: '/insights', label: '复盘', icon: ChartLine },
 ]
 </script>
 
