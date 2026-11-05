@@ -13,7 +13,7 @@
           description
         }}</DialogDescription>
 
-        <div class="dialog-boddy">
+        <div class="dialog-body">
           <slot />
         </div>
 

@@ -32,13 +32,29 @@
         <template #trigger>
           <Button variant="ghost">打开对话框</Button>
         </template>
-        <p class="dialog-body">按 Esc 关闭；Tab 会在对话框内循环；关闭后焦点回到触发按钮。</p>
+        <p>按 Esc 关闭；Tab 会在对话框内循环；关闭后焦点回到触发按钮。</p>
 
         <template #footer>
           <Button variant="ghost" @click="demoOpen = false">取消</Button>
           <Button variant="lime" @click="demoOpen = false">知道了</Button>
         </template>
       </AppDialog>
+
+      <AppDrawer
+        v-model:open="drawerOpen"
+        title="任务详情"
+        description="抽屉用于编辑，不会打断当前上下文。"
+      >
+        <template #trigger>
+          <Button variant="ghost">打开抽屉</Button>
+        </template>
+        <p>这里是抽屉的内容区，内容多的时候只有这块会滚动。</p>
+
+        <template #footer>
+          <Button variant="ghost" @click="drawerOpen = false">取消</Button>
+          <Button variant="lime" @click="drawerOpen = false">保存</Button>
+        </template>
+      </AppDrawer>
     </div>
   </Card>
 </template>
@@ -49,9 +65,11 @@ import Chip from '@/components/ui/Chip.vue'
 import PagePlaceholder from '@/components/ui/PagePlaceholder.vue'
 import AppDialog from '@/components/ui/AppDialog.vue'
 import Button from '@/components/ui/Button.vue'
+import AppDrawer from '@/components/ui/AppDrawer.vue'
 import { ref } from 'vue'
 
 const demoOpen = ref(false)
+const drawerOpen = ref(false)
 </script>
 
 <style scoped>
