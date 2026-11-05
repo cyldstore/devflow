@@ -26,6 +26,16 @@
   --sage: #557440;
   --sage-soft: #eaf2df;
   --cream: #eef1e8;
+  --sage-ink: #4e6b34;
+  --blue-ink: #48619e;
+  --wood: #8b5a2b;
+  --wood-soft: #f7ecde;
+  --stone: #776a5e;
+  --stone-soft: #f0ebe4;
+  --neutral-soft: #efede6;
+  --lime-ink: #3f581f;
+  --coral-ink: #b64528;
+  --amber-ink: #936312;
   --font-sans:
     'Segoe UI Variable Display', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
   --font-mono: 'Cascadia Code', 'Cascadia Mono', Consolas, 'Microsoft YaHei UI', monospace;
@@ -88,6 +98,24 @@
   --color-surface: var(--panel);
   --color-primary: var(--ink);
   --color-on-primary: var(--panel-bright);
+
+  /* 语义层：色片 tone（Chip 等） */
+  --color-tone-sage-fg: var(--sage-ink);
+  --color-tone-sage-bg: var(--sage-soft);
+  --color-tone-blue-fg: var(--blue-ink);
+  --color-tone-blue-bg: var(--blue-soft);
+  --color-tone-wood-fg: var(--wood);
+  --color-tone-wood-bg: var(--wood-soft);
+  --color-tone-stone-fg: var(--stone);
+  --color-tone-stone-bg: var(--stone-soft);
+  --color-tone-neutral-fg: var(--muted);
+  --color-tone-neutral-bg: var(--neutral-soft);
+  --color-tone-lime-fg: var(--lime-ink);
+  --color-tone-lime-bg: var(--lime-soft);
+  --color-tone-coral-fg: var(--coral-ink);
+  --color-tone-coral-bg: var(--coral-soft);
+  --color-tone-amber-fg: var(--amber-ink);
+  --color-tone-amber-bg: var(--amber-soft);
   --color-sidebar: var(--sidebar);
   --color-sidebar-raised: var(--sidebar-raised);
   --color-sidebar-line: var(--sidebar-line);

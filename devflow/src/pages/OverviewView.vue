@@ -12,12 +12,24 @@
       <p class="demo-text">
         这是一段用来验证卡片内边距和文字排版的占位内容，长度足够换行，可以看到行高。
       </p>
+
+      <div class="demo-chips">
+        <Chip tone="sage" dot>学习</Chip>
+        <Chip tone="blue" dot>求职</Chip>
+        <Chip tone="wood">项目</Chip>
+        <Chip tone="stone">生活</Chip>
+        <Chip tone="coral">逾期</Chip>
+        <Chip tone="amber">进行中</Chip>
+        <Chip tone="lime">已完成</Chip>
+        <Chip>待定</Chip>
+      </div>
     </div>
   </Card>
 </template>
 
 <script setup lang="ts">
 import Card from '@/components/ui/Card.vue'
+import Chip from '@/components/ui/Chip.vue'
 import PagePlaceholder from '@/components/ui/PagePlaceholder.vue'
 </script>
 
@@ -41,5 +53,12 @@ import PagePlaceholder from '@/components/ui/PagePlaceholder.vue'
   font-size: var(--text-base);
   line-height: var(--leading-normal);
   color: var(--color-text-muted);
+}
+
+.demo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
 }
 </style>

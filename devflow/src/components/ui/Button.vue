@@ -18,7 +18,6 @@ withDefaults(
     size: 'md',
   },
 )
-
 </script>
 
 <style scoped>
