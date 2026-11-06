@@ -1,0 +1,170 @@
+import type { Database } from './db'
+
+function localDate(offsetDays = 0): string {
+  const d = new Date()
+  d.setDate(d.getDate() + offsetDays)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+export function createSeedDatabase(): Database {
+  const now = new Date().toISOString()
+
+  return {
+    version: 1,
+    profile: {
+      name: '示例用户',
+      targetRole: '前端开发',
+      weeklyGoalHours: 10,
+      theme: 'system',
+      onboardingDone: true,
+    },
+    tasks: [
+      {
+        id: 'seed-task-1',
+        title: '复盘 Vue 3 响应式原理',
+        note: '重点：ref 与 reactive 的边界',
+        date: localDate(0),
+        category: 'learning',
+        priority: 'P0',
+        estimateMin: 45,
+        done: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'seed-task-2',
+        title: '投递 2 个匹配岗位',
+        date: localDate(0),
+        category: 'job',
+        priority: 'P1',
+        estimateMin: 30,
+        done: true,
+        completedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'seed-task-3',
+        title: '完善项目 README 的技术亮点',
+        date: localDate(-1),
+        category: 'project',
+        priority: 'P0',
+        estimateMin: 40,
+        done: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'seed-task-4',
+        title: '整理浏览器渲染流程笔记',
+        date: localDate(2),
+        category: 'learning',
+        priority: 'P2',
+        estimateMin: 60,
+        done: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ],
+    knowledge: [
+      {
+        id: 'seed-know-1',
+        type: 'note',
+        title: 'ref 与 reactive 的边界',
+        content: '`ref` 适合任意值，`reactive` 只接受对象。解构 `reactive` 会丢失响应式。',
+        topic: 'Vue',
+        tags: ['响应式', '基础'],
+        mastery: 'learning',
+        pinned: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'seed-know-2',
+        type: 'question',
+        title: '浏览器渲染流程是怎样的？',
+        content:
+          '**我的答案**：解析 HTML → 构建 DOM → 样式计算 → 布局 → 绘制。\n\n**追问**：重排和重绘的区别？',
+        topic: '浏览器',
+        tags: ['性能'],
+        mastery: 'rusty',
+        pinned: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'seed-know-3',
+        type: 'snippet',
+        title: '防抖函数',
+        content:
+          '```ts\nfunction debounce(fn, delay) {\n  let t\n  return (...args) => {\n    clearTimeout(t)\n    t = setTimeout(() => fn(...args), delay)\n  }\n}\n```',
+        topic: 'JavaScript',
+        tags: ['工具'],
+        mastery: 'solid',
+        pinned: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ],
+    applications: [
+      {
+        id: 'seed-app-1',
+        company: '字节跳动',
+        role: '前端开发',
+        city: '北京',
+        channel: '官网',
+        stage: 'interview',
+        priority: 'P0',
+        appliedAt: localDate(-7),
+        nextAction: { label: '二面', date: localDate(1) },
+        timeline: [
+          { id: 'seed-ev-1', type: 'stage', text: '已投递', date: localDate(-7) },
+          { id: 'seed-ev-2', type: 'interview', text: '一面通过', date: localDate(-2) },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'seed-app-2',
+        company: '小红书',
+        role: 'Web 前端',
+        city: '上海',
+        channel: '内推',
+        stage: 'applied',
+        priority: 'P1',
+        appliedAt: localDate(-3),
+        nextAction: { label: '跟进 HR', date: localDate(3) },
+        timeline: [{ id: 'seed-ev-3', type: 'stage', text: '已投递', date: localDate(-3) }],
+        createdAt: now,
+        updatedAt: now,
+      },
+    ],
+    studyLogs: [
+      {
+        id: 'seed-log-1',
+        date: localDate(0),
+        minutes: 45,
+        topic: 'Vue',
+        activity: 'reading',
+        takeaway: '理解了 reactive 解构丢失响应式的原因',
+      },
+      {
+        id: 'seed-log-2',
+        date: localDate(-1),
+        minutes: 60,
+        topic: 'JavaScript',
+        activity: 'coding',
+      },
+      {
+        id: 'seed-log-3',
+        date: localDate(-2),
+        minutes: 30,
+        topic: '浏览器',
+        activity: 'practice',
+      },
+    ],
+  }
+}

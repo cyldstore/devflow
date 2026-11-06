@@ -1,8 +1,9 @@
 import { reactive, readonly, ref, watch } from 'vue'
 import type { Database } from '@/lib/db'
-import { loadDatabase, saveDatabase } from '@/lib/db'
+import { loadDatabase, saveDatabase, createEmptyDatabase } from '@/lib/db'
+import { createSeedDatabase } from '@/lib/seed'
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'  // 保存状态
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' // 保存状态
 
 const SAVE_DELAY = 400
 
@@ -24,6 +25,16 @@ export function persist(): boolean {
   const ok = saveDatabase(state)
   status.value = ok ? 'saved' : 'error'
   return ok
+}
+
+export function loadSeed(): void {
+  Object.assign(state, createSeedDatabase())
+  persist()
+}
+
+export function resetDatabase(): void {
+  Object.assign(state, createEmptyDatabase())
+  persist()
 }
 
 function clearPending(): void {
