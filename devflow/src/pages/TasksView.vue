@@ -26,7 +26,7 @@
     <Card v-if="groups.length === 0" class="empty">
       <div class="empty-body">
         <p class="empty-title">还没有任务</p>
-        <p class="empty-text">先载入一组示例数据看看效果，或者等下一步加上新建。</p>
+        <p class="empty-text">先载入一组示例数据看看效果，或者在上方输入框写下第一件事。</p>
         <Button variant="lime" @click="focusInput">新建第一条</Button>
         <Button variant="ghost" @click="loadSeed">载入示例数据</Button>
       </div>
@@ -61,7 +61,18 @@
               :class="['row', { done: task.done, overdue: isOverdue(task, today) }]"
             >
               <span class="check" aria-hidden="true">
-                <Check v-if="task.done" :size="12" :stroke-width="2.6" />
+                <label class="check-wrap">
+                  <input
+                    class="check-input"
+                    type="checkbox"
+                    :checked="task.done"
+                    :aria-label="task.done ? `取消完成：${task.title}` : `完成：${task.title}`"
+                    @change="handleToggle(task)"
+                  />
+                  <span class="check" aria-hidden="true">
+                    <Check v-if="task.done" :size="12" :stroke-width="2.6" />
+                  </span>
+                </label>
               </span>
 
               <div class="copy">
@@ -95,9 +106,10 @@ import Chip from '@/components/ui/Chip.vue'
 import { localDate } from '@/lib/date'
 import { groupTasks, isOverdue } from '@/lib/tasks'
 import { loadSeed, useDatabase } from '@/stores/db'
-import type { TaskCategory } from '@/types'
+import type { TaskCategory, Task } from '@/types'
 import { Plus } from 'lucide-vue-next'
-import { addTask } from '@/stores/tasks'
+import { addTask, toggleTask } from '@/stores/tasks'
+import { toast } from '@/lib/toast'
 
 const CATEGORY_LABELS: Record<TaskCategory, string> = {
   learning: '学习',
@@ -132,6 +144,25 @@ function submitTask() {
 
 function focusInput() {
   inputEl.value?.focus()
+}
+
+function handleToggle(task: Task) {
+  const willBeDone = !task.done
+  toggleTask(task.id)
+
+  if (willBeDone) {
+    toast.add({
+      title: '已完成',
+      description: task.title,
+      status: 'success',
+      duration: 5000,
+      actionProps: {
+        label: '撤销',
+        altText: '撤销完成',
+        onClick: () => toggleTask(task.id),
+      },
+    })
+  }
 }
 </script>
 
@@ -250,7 +281,6 @@ h1 {
   flex: none;
   width: 16px;
   height: 16px;
-  margin-top: 2px;
   display: grid;
   place-items: center;
   border: 1px solid var(--color-border);
@@ -356,5 +386,25 @@ h1 {
 
 .quick-add input::placeholder {
   color: var(--color-text-faint);
+}
+
+.check-wrap {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  margin-top: 2px;
+}
+
+.check-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.check-input:focus-visible + .check {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
 }
 </style>

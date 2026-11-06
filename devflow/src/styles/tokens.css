@@ -82,6 +82,7 @@
   /* 阴影：设计只允许极轻的抬升感，重阴影一律不用 */
   --shadow-card: 0 1px 0 rgb(23 26 22 / 0.025);
   --shadow-modal: 0 18px 50px rgb(20 23 19 / 0.18);
+  --shadow-toast: 0 10px 28px rgb(20 23 19 / 0.12);
 
   /* 语义层 */
   --color-text: var(--ink-soft);

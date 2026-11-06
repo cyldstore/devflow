@@ -8,6 +8,7 @@
       </main>
     </div>
     <BottomNav />
+    <ToastHost />
   </div>
 </template>
 
@@ -15,6 +16,7 @@
 import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 import BottomNav from './BottomNav.vue'
+import ToastHost from '@/components/ui/ToastHost.vue'
 </script>
 
 <style scoped>

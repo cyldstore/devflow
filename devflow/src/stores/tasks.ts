@@ -22,3 +22,16 @@ export function addTask(title: string): Task | null {
   useDatabase().tasks.push(task)
   return task
 }
+
+export function toggleTask(id: string): Task | null {
+  const db = useDatabase()
+  const task = db.tasks.find((t) => t.id === id)
+  if (!task) return null
+
+  const now = new Date().toISOString()
+  task.done = !task.done
+  task.completedAt = task.done ? now : undefined
+  task.updatedAt = now
+
+  return task
+}
