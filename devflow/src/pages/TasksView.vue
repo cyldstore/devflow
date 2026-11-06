@@ -11,11 +11,24 @@
       </p>
     </header>
 
+    <form class="quick-add" @submit.prevent="submitTask">
+      <Plus :size="14" aria-hidden="true" />
+      <input
+        ref="inputEl"
+        v-model="draft"
+        type="text"
+        placeholder="添加任务，按回车创建"
+        aria-label="新任务标题"
+        enterkeyhint="done"
+      />
+    </form>
+
     <Card v-if="groups.length === 0" class="empty">
       <div class="empty-body">
         <p class="empty-title">还没有任务</p>
         <p class="empty-text">先载入一组示例数据看看效果，或者等下一步加上新建。</p>
-        <Button variant="lime" @click="loadSeed">载入示例数据</Button>
+        <Button variant="lime" @click="focusInput">新建第一条</Button>
+        <Button variant="ghost" @click="loadSeed">载入示例数据</Button>
       </div>
     </Card>
 
@@ -83,6 +96,8 @@ import { localDate } from '@/lib/date'
 import { groupTasks, isOverdue } from '@/lib/tasks'
 import { loadSeed, useDatabase } from '@/stores/db'
 import type { TaskCategory } from '@/types'
+import { Plus } from 'lucide-vue-next'
+import { addTask } from '@/stores/tasks'
 
 const CATEGORY_LABELS: Record<TaskCategory, string> = {
   learning: '学习',
@@ -105,6 +120,19 @@ const doneOpen = ref(false)
 const groups = computed(() => groupTasks(db.tasks, today))
 const openCount = computed(() => db.tasks.filter((task) => !task.done).length)
 const overdueCount = computed(() => db.tasks.filter((task) => isOverdue(task, today)).length)
+
+const draft = ref('')
+const inputEl = ref<HTMLInputElement | null>(null)
+
+function submitTask() {
+  const task = addTask(draft.value)
+  if (!task) return
+  draft.value = ''
+}
+
+function focusInput() {
+  inputEl.value?.focus()
+}
 </script>
 
 <style scoped>
@@ -298,5 +326,35 @@ h1 {
   margin: 0;
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.quick-add {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 44px;
+  padding: 0 var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-faint);
+}
+
+.quick-add:focus-within {
+  border-color: var(--color-accent-strong);
+}
+
+.quick-add input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-base);
+}
+
+.quick-add input::placeholder {
+  color: var(--color-text-faint);
 }
 </style>
