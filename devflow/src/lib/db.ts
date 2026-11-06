@@ -38,7 +38,7 @@ export function saveDatabase(db: Database): boolean {
   return writeJSON(DB_KEY, { ...db, version: DB_VERSION })
 }
 
-function normalizeDatabase(raw: unknown): Database {
+export function normalizeDatabase(raw: unknown): Database {
   const base = createEmptyDatabase()
   if (typeof raw !== 'object' || raw === null) return base
 

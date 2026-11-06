@@ -37,6 +37,11 @@ export function resetDatabase(): void {
   persist()
 }
 
+export function replaceDatabase(next: Database): void {
+  Object.assign(state, next)
+  persist()
+}
+
 function clearPending(): void {
   if (timer !== undefined) {
     clearTimeout(timer)
