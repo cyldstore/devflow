@@ -1,21 +1,30 @@
 <template>
-  <ToastRoot v-for="t in toasts" :key="t.id" :toast="t" as="li" class="toast">
-    <span class="dot" aria-hidden="true" />
+  <ToastRoot v-for="t in toasts" :key="t.id" :toast="t" as="li" class="toast-item">
+    <div class="toast">
+      <span class="icon" aria-hidden="true">
+        <Check v-if="t.status === 'success'" :size="16" :stroke-width="2.4" />
+        <AlertCircle v-else-if="t.status === 'error'" :size="16" :stroke-width="2.2" />
+        <Info v-else :size="16" :stroke-width="2" />
+      </span>
 
-    <div class="content">
-      <ToastTitle class="title" />
-      <ToastDescription v-if="t.description" class="description" />
+      <div class="content">
+        <ToastTitle class="title" />
+        <ToastDescription v-if="t.description" class="description" />
+      </div>
+
+      <div v-if="t.actionProps" class="actions">
+        <ToastAction class="action" />
+      </div>
+
+      <ToastClose class="close" aria-label="关闭">
+        <X :size="14" aria-hidden="true" />
+      </ToastClose>
     </div>
-
-    <ToastAction v-if="t.actionProps" class="action" />
-    <ToastClose class="close" aria-label="关闭">
-      <X :size="14" aria-hidden="true" />
-    </ToastClose>
   </ToastRoot>
 </template>
 
 <script setup lang="ts">
-import { X } from 'lucide-vue-next'
+import { AlertCircle, Check, Info, X } from 'lucide-vue-next'
 import {
   ToastAction,
   ToastClose,
@@ -29,93 +38,117 @@ const { toasts } = useToastManager()
 </script>
 
 <style scoped>
+.toast-item {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .toast {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: var(--space-3);
+  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-areas:
+    'icon content'
+    '. actions';
+  column-gap: var(--space-3);
   width: 100%;
-  margin: 0;
-  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6);
+  padding: var(--space-5) var(--space-5) var(--space-4);
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-toast);
-  list-style: none;
-  overflow: hidden;
 }
 
-.toast::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--color-text-faint);
+.toast-item[data-status='success'] .toast {
+  background: var(--color-toast-success-bg);
+  border-color: var(--color-toast-success-border);
 }
 
-.toast[data-status='success']::before {
-  background: var(--color-accent-strong);
+.toast-item[data-status='error'] .toast {
+  background: var(--color-toast-error-bg);
+  border-color: var(--color-toast-error-border);
 }
 
-.toast[data-status='error']::before {
-  background: var(--color-danger);
+.icon {
+  grid-area: icon;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-text);
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: var(--radius-circle);
-  background: var(--color-text-faint);
+.toast-item[data-status='success'] .icon {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
 }
 
-.toast[data-status='success'] .dot {
-  background: var(--color-accent-strong);
-}
-
-.toast[data-status='error'] .dot {
-  background: var(--color-danger);
+.toast-item[data-status='error'] .icon {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
 
 .content {
+  grid-area: content;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  padding-right: 24px;
 }
 
 .title {
-  font-size: var(--text-sm);
-  font-weight: 600;
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 650;
+  letter-spacing: -0.01em;
   color: var(--color-text-strong);
 }
 
 .description {
-  font-size: var(--text-xs);
+  margin: 3px 0 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
   color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.actions {
+  grid-area: actions;
+  margin-top: var(--space-3);
+  display: flex;
+  justify-content: flex-end;
+}
+
 .action {
-  height: 26px;
-  padding: 0 var(--space-3);
+  height: 28px;
+  padding: 0 var(--space-4);
   border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-tone-lime-fg);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   font-family: inherit;
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
 }
 
+.toast-item[data-status='error'] .action {
+  background: var(--color-danger);
+}
+
 .action:hover {
-  background: var(--color-accent-soft);
+  opacity: 0.9;
 }
 
 .close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
   width: 24px;
   height: 24px;
   display: grid;
@@ -128,7 +161,7 @@ const { toasts } = useToastManager()
 }
 
 .close:hover {
-  background: var(--color-background);
+  background: rgb(23 26 22 / 0.06);
   color: var(--color-text-strong);
 }
 
@@ -156,11 +189,11 @@ const { toasts } = useToastManager()
   }
 }
 
-.toast[data-state='open'] {
+.toast-item[data-state='open'] .toast {
   animation: toast-in 180ms ease-out;
 }
 
-.toast[data-state='closed'] {
+.toast-item[data-state='closed'] .toast {
   animation: toast-out 140ms ease-in forwards;
 }
 

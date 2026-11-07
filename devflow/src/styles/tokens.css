@@ -39,6 +39,10 @@
   --font-sans:
     'Segoe UI Variable Display', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
   --font-mono: 'Cascadia Code', 'Cascadia Mono', Consolas, 'Microsoft YaHei UI', monospace;
+  --color-toast-success-bg: #f5fae9;
+  --color-toast-success-border: #dceec0;
+  --color-toast-error-bg: #fdf0ea;
+  --color-toast-error-border: #f3d3c8;
 
   /* 圆角刻度：按 design/styles.css 的实际分布归并 */
   --radius-xs: 3px; /* 2–4px：标签、小方块 */
