@@ -273,7 +273,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, nextTick, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, reactive, nextTick, onBeforeUnmount, watch, onMounted } from 'vue'
 import { Pin, Plus, Pencil, Trash2, Search, X } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
@@ -510,9 +510,19 @@ watch(draft, () => {
 watch(editorOpen, (open) => {
   if (open) return
   clearSaveTimer()
-  if (dirty) persistDraft()
+  const discarded = dirty && !canSave.value
+  if (dirty && canSave.value) persistDraft()
   saveState.value = 'idle'
   dirty = false
+
+  if (discarded) {
+    toast.add({
+      title: '修改未保存',
+      description: '标题或主题为空，已丢弃本次修改',
+      status: 'error',
+      duration: 3000,
+    })
+  }
 })
 
 onBeforeUnmount(() => {
@@ -597,6 +607,7 @@ const allTags = computed(() => {
   return [...tags].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
 })
 
+// 标签搜索开关
 function toggleTag(tag: string) {
   const index = activeTags.value.indexOf(tag)
   if (index === -1) {
@@ -605,6 +616,29 @@ function toggleTag(tag: string) {
     activeTags.value.splice(index, 1)
   }
 }
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  clearSaveTimer()
+
+  if (dirty && canSave.value) {
+    persistDraft()
+  }
+
+  if (saveState.value === 'invalid') {
+    event.preventDefault()
+    event.returnValue = ''
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+  clearSaveTimer()
+  if (dirty && canSave.value) persistDraft()
+})
 </script>
 
 <style scoped>
