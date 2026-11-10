@@ -82,10 +82,28 @@
               </span>
             </div>
 
-            <Button variant="ghost" size="sm" @click="startEdit(selected)">
-              <Pencil :size="13" aria-hidden="true" />
-              编辑
-            </Button>
+            <div class="detail-actions">
+              <Button
+                variant="quiet"
+                size="sm"
+                class="pin-btn"
+                :aria-pressed="selected.pinned"
+                @click="togglePin(selected)"
+              >
+                <Pin :size="13" aria-hidden="true" />
+                {{ selected.pinned ? '已置顶' : '置顶' }}
+              </Button>
+
+              <Button variant="ghost" size="sm" @click="startEdit(selected)">
+                <Pencil :size="13" aria-hidden="true" />
+                编辑
+              </Button>
+
+              <Button variant="ghost" size="sm" class="danger-text" @click="askDelete(selected)">
+                <Trash2 :size="13" aria-hidden="true" />
+                删除
+              </Button>
+            </div>
           </div>
 
           <h2 class="detail-title">{{ selected.title }}</h2>
@@ -188,12 +206,26 @@
         </template>
       </template>
     </AppDrawer>
+
+    <!-- 删除弹窗 -->
+    <AppDialog
+      v-model:open="deleteOpen"
+      title="删除这条内容？"
+      :description="deleteTarget ? `「${deleteTarget.title}」删除后无法恢复。` : ''"
+    >
+      <p class="confirm-text">这条内容不会被放进回收站，也无法撤销。</p>
+
+      <template #footer>
+        <Button variant="ghost" @click="deleteOpen = false">取消</Button>
+        <Button variant="danger" @click="confirmDelete">删除</Button>
+      </template>
+    </AppDialog>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, reactive, nextTick, onBeforeUnmount, watch } from 'vue'
-import { Pin, Plus, Pencil } from 'lucide-vue-next'
+import { Pin, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Chip from '@/components/ui/Chip.vue'
@@ -204,7 +236,12 @@ import type { Mastery, KnowledgeType, KnowledgeItem } from '@/types'
 import { renderMarkdown } from '@/lib/markdown'
 import AppDialog from '@/components/ui/AppDialog.vue'
 import AppDrawer from '@/components/ui/AppDrawer.vue'
-import { createKnowledge, updateKnowledge } from '@/stores/knowledge'
+import {
+  createKnowledge,
+  updateKnowledge,
+  removeKnowledge,
+  toggleKnowledgePin,
+} from '@/stores/knowledge'
 import { toast } from '@/lib/toast'
 
 const TABS: { value: KnowledgeFilter; label: string }[] = [
@@ -435,6 +472,51 @@ onBeforeUnmount(() => {
   clearSaveTimer()
   if (dirty) persistDraft()
 })
+
+const deleteOpen = ref(false) // 删除弹窗开启状态
+const deleteTargetId = ref<string | null>(null)
+
+const deleteTarget = computed(
+  () => db.knowledge.find((item) => item.id === deleteTargetId.value) ?? null,
+)
+
+// 唤醒删除弹窗
+function askDelete(item: KnowledgeItem) {
+  deleteTargetId.value = item.id
+  deleteOpen.value = true
+}
+
+// 确认删除
+function confirmDelete() {
+  if (!deleteTargetId.value) return
+
+  const item = removeKnowledge(deleteTargetId.value)
+  deleteOpen.value = false
+  deleteTargetId.value = null
+
+  if (item && selectedId.value === item.id) {
+    selectedId.value = null
+  }
+
+  if (item) {
+    toast.add({ title: '已删除', description: item.title, duration: 3000 })
+  }
+}
+
+// 置顶
+function togglePin(item: KnowledgeItem | null): void {
+  if (!item) return
+
+  const updated = toggleKnowledgePin(item.id)
+  if (!updated) {
+    toast.add({
+      title: '条目不存在',
+      description: '可能已经被删除',
+      status: 'error',
+      duration: 3000,
+    })
+  }
+}
 </script>
 
 <style scoped>
@@ -847,5 +929,27 @@ h1 {
 
 .save-state[data-state='invalid'] {
   color: var(--color-danger);
+}
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pin-btn[aria-pressed='true'] {
+  background: var(--color-accent-soft);
+  color: var(--color-tone-lime-fg);
+}
+
+.danger-text {
+  color: var(--color-danger);
+}
+
+.confirm-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
 }
 </style>

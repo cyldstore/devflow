@@ -50,3 +50,24 @@ export function updateKnowledge(id: string, patch: KnowledgePatch): KnowledgeIte
 
   return item
 }
+
+// 移除知识库
+export function removeKnowledge(id: string): KnowledgeItem | null {
+  const db = useDatabase()
+  const index = db.knowledge.findIndex((k) => k.id === id)
+  if (index === -1) return null
+
+  const [item] = db.knowledge.splice(index, 1)
+  return item ?? null
+}
+
+// 置顶开关
+export function toggleKnowledgePin(id: string): KnowledgeItem | null {
+  const db = useDatabase()
+  const item = db.knowledge.find((k) => k.id === id)
+  if (!item) return null
+
+  item.pinned = !item.pinned
+  item.updatedAt = new Date().toISOString()
+  return item
+}
