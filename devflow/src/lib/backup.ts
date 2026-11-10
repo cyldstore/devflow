@@ -14,6 +14,7 @@ export interface BackupFile {
 
 export type ImportResult = { ok: true; data: Database } | { ok: false; error: string }
 
+// 生成备份
 export function createBackup(db: Database): string {
   const payload: BackupFile = {
     app: APP_ID,
@@ -24,6 +25,7 @@ export function createBackup(db: Database): string {
   return JSON.stringify(payload, null, 2)
 }
 
+// 下载备份
 export function downloadBackup(db: Database): void {
   const blob = new Blob([createBackup(db)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)

@@ -4,6 +4,7 @@ import { readJSON, writeJSON } from './storage'
 const DB_KEY = 'db'
 const DB_VERSION = 1
 
+// 数据结构
 export interface Database {
   version: number
   tasks: Task[]
@@ -13,6 +14,7 @@ export interface Database {
   profile: Profile
 }
 
+// 创建空数据
 export function createEmptyDatabase(): Database {
   return {
     version: DB_VERSION,
@@ -30,14 +32,17 @@ export function createEmptyDatabase(): Database {
   }
 }
 
+// 加载数据
 export function loadDatabase(): Database {
   return normalizeDatabase(readJSON<unknown>(DB_KEY, null))
 }
 
+// 保存数据
 export function saveDatabase(db: Database): boolean {
   return writeJSON(DB_KEY, { ...db, version: DB_VERSION })
 }
 
+// 格式化数据
 export function normalizeDatabase(raw: unknown): Database {
   const base = createEmptyDatabase()
   if (typeof raw !== 'object' || raw === null) return base

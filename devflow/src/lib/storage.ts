@@ -22,7 +22,5 @@ export function writeJSON<T>(key: string, value: T): boolean {
 export function removeJSON(key: string): void {
   try {
     localStorage.removeItem(`${PREFIX}:${key}`)
-  } catch {
-    // 极少数环境下 removeItem 也会抛错（例如被策略禁用），忽略即可
-  }
+  } catch {}
 }

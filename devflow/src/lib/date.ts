@@ -1,3 +1,4 @@
+// 日期格式化
 export function formatDate(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -5,6 +6,7 @@ export function formatDate(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
+// 当前时间
 export function localDate(offsetDays = 0): string {
   const d = new Date()
   d.setDate(d.getDate() + offsetDays)

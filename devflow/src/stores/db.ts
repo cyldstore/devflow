@@ -5,21 +5,26 @@ import { createSeedDatabase } from '@/lib/seed'
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' // 保存状态
 
+// 延迟保存时间
 const SAVE_DELAY = 400
 
 const state = reactive<Database>(loadDatabase())
 const status = ref<SaveStatus>('idle')
 
+// 计时器
 let timer: ReturnType<typeof setTimeout> | undefined
 
+// 获取数据
 export function useDatabase(): Database {
   return state
 }
 
+// 获取保存状态
 export function useSaveStatus() {
   return readonly(status)
 }
 
+// 保存数据
 export function persist(): boolean {
   clearPending()
   const ok = saveDatabase(state)
@@ -27,21 +32,25 @@ export function persist(): boolean {
   return ok
 }
 
+// 加载示例数据
 export function loadSeed(): void {
   Object.assign(state, createSeedDatabase())
   persist()
 }
 
+// 清空数据
 export function resetDatabase(): void {
   Object.assign(state, createEmptyDatabase())
   persist()
 }
 
+// 替换数据
 export function replaceDatabase(next: Database): void {
   Object.assign(state, next)
   persist()
 }
 
+// 清除计时器
 function clearPending(): void {
   if (timer !== undefined) {
     clearTimeout(timer)
@@ -49,6 +58,7 @@ function clearPending(): void {
   }
 }
 
+// 自动保存
 function scheduleSave(): void {
   status.value = 'saving'
   clearPending()
