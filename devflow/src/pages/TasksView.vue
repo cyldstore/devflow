@@ -62,6 +62,7 @@
               v-for="task in group.tasks"
               :key="task.id"
               :class="['row', { done: task.done, overdue: isOverdue(task, today) }]"
+              @click="onRowClick($event, task)"
             >
               <label class="check-wrap">
                 <input
@@ -89,11 +90,22 @@
                 </div>
               </div>
 
-              <div class="class">
+              <div class="row-end">
                 <span :class="['priority', task.priority.toLowerCase()]">{{ task.priority }}</span>
+                <!-- 编辑 -->
                 <button
                   type="button"
-                  class="row-delete"
+                  class="row-action"
+                  :aria-label="`编辑任务：${task.title}`"
+                  @click="openEditor(task)"
+                >
+                  <Pencil :size="14" aria-hidden="true" />
+                </button>
+
+                <!-- 删除 -->
+                <button
+                  type="button"
+                  class="row-action danger"
                   :aria-label="`删除任务：${task.title}`"
                   @click="handleDelete(task)"
                 >
@@ -105,22 +117,81 @@
         </section>
       </template>
     </div>
+
+    <!-- 编辑抽屉 -->
+    <AppDrawer v-model:open="drawerOpen" title="编辑任务" description="修改后点保存生效">
+      <form id="task-form" class="form" @submit.prevent="save">
+        <label class="field">
+          <span class="field-label">标题</span>
+          <input v-model="editft.title" class="input" type="text" required />
+        </label>
+
+        <label class="field">
+          <span class="field-label">备注</span>
+          <textarea v-model="editft.note" class="input textarea" rows="3" />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">日期</span>
+            <input v-model="editft.date" class="input" type="date" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">估时（分钟）</span>
+            <input
+              v-model.number="editft.estimateMin"
+              class="input"
+              type="number"
+              min="0"
+              step="5"
+            />
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">分类</span>
+            <select v-model="editft.category" class="input">
+              <option value="learning">学习</option>
+              <option value="job">求职</option>
+              <option value="project">项目</option>
+              <option value="life">生活</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-label">优先级</span>
+            <select v-model="editft.priority" class="input">
+              <option value="P0">P0 · 今天必须</option>
+              <option value="P1">P1 · 本周</option>
+              <option value="P2">P2 · 有空再说</option>
+            </select>
+          </label>
+        </div>
+      </form>
+
+      <template #footer>
+        <Button variant="ghost" @click="drawerOpen = false">取消</Button>
+        <Button variant="lime" type="submit" form="task-form" :disabled="!canSave">保存</Button>
+      </template>
+    </AppDrawer>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { Check, ChevronRight, Trash2 } from 'lucide-vue-next'
+import { computed, ref, reactive } from 'vue'
+import { Check, ChevronRight, Trash2, Pencil, Plus } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Chip from '@/components/ui/Chip.vue'
 import { localDate } from '@/lib/date'
 import { groupTasks, isOverdue } from '@/lib/tasks'
 import { loadSeed, useDatabase } from '@/stores/db'
-import type { TaskCategory, Task } from '@/types'
-import { Plus } from 'lucide-vue-next'
-import { addTask, toggleTask, removeTask, restoreTask } from '@/stores/tasks'
+import type { TaskCategory, Task, Priority } from '@/types'
+import { addTask, toggleTask, removeTask, restoreTask, updateTask } from '@/stores/tasks'
 import { toast } from '@/lib/toast'
+import AppDrawer from '@/components/ui/AppDrawer.vue'
 
 // 类别标签名称
 const CATEGORY_LABELS: Record<TaskCategory, string> = {
@@ -196,6 +267,70 @@ function handleDelete(task: Task) {
       onClick: () => restoreTask(removed),
     },
   })
+}
+
+interface TaskEditft {
+  title: string
+  note: string
+  date: string
+  category: TaskCategory
+  priority: Priority
+  estimateMin: number | null
+}
+
+const drawerOpen = ref(false)
+const editingId = ref<string | null>(null)
+
+const editft = reactive<TaskEditft>({
+  title: '',
+  note: '',
+  date: localDate(),
+  category: 'project',
+  priority: 'P2',
+  estimateMin: null,
+})
+
+const canSave = computed(() => editft.title.trim().length > 0 && editft.date.length > 0)
+
+// 编辑对象
+function openEditor(task: Task) {
+  editingId.value = task.id
+  editft.title = task.title
+  editft.note = task.note ?? ''
+  editft.date = task.date
+  editft.category = task.category
+  editft.priority = task.priority
+  editft.estimateMin = task.estimateMin ?? null
+  drawerOpen.value = true
+}
+
+// 保存更新
+function save() {
+  if (!editingId.value || !canSave.value) return
+
+  updateTask(editingId.value, {
+    title: editft.title.trim(),
+    note: editft.note.trim() || undefined,
+    date: editft.date,
+    category: editft.category,
+    priority: editft.priority,
+    estimateMin: editft.estimateMin && editft.estimateMin > 0 ? editft.estimateMin : undefined,
+  })
+
+  drawerOpen.value = false
+  toast.add({
+    title: '已保存',
+    description: editft.title.trim(),
+    status: 'success',
+    duration: 3000,
+  })
+}
+
+// 整行鼠标点击
+function onRowClick(event: MouseEvent, task: Task) {
+  const target = event.target as HTMLElement
+  if (target.closest('button, input, label, a, select, textarea')) return
+  openEditor(task)
 }
 </script>
 
@@ -449,7 +584,7 @@ h1 {
   margin-top: 2px;
 }
 
-.row-delete {
+.row-action {
   width: 24px;
   height: 24px;
   display: grid;
@@ -465,25 +600,81 @@ h1 {
     color 120ms ease;
 }
 
-.row:hover .row-delete,
-.row:focus-within .row-delete {
+.row:hover .row-action {
   opacity: 1;
 }
 
-.row-delete:hover {
-  color: var(--color-danger);
-  background: var(--color-danger-soft);
+.row-action:hover {
+  background: var(--color-background);
+  color: var(--color-text-strong);
 }
 
-.row-delete:focus-visible {
+.row-action.danger:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.row-action:focus-visible {
   opacity: 1;
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
 }
 
 @media (hover: none) {
-  .row-delete {
+  .row-action {
     opacity: 1;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.field-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.input {
+  height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-base);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: 1px;
+}
+
+.textarea {
+  height: auto;
+  padding: var(--space-3) var(--space-4);
+  resize: vertical;
+  line-height: var(--leading-normal);
+}
+
+@media (max-width: 767px) {
+  .field-row {
+    grid-template-columns: 1fr;
   }
 }
 </style>

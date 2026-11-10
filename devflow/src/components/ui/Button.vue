@@ -72,4 +72,9 @@ withDefaults(
   background: var(--color-danger);
   color: var(--color-on-primary);
 }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 </style>
