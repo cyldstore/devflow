@@ -34,3 +34,19 @@ export function createKnowledge(input: KnowledgeInput): KnowledgeItem | null {
   useDatabase().knowledge.push(item)
   return item
 }
+
+export type KnowledgePatch = Partial<
+  Pick<KnowledgeItem, 'title' | 'content' | 'topic' | 'tags' | 'mastery' | 'pinned'>
+>
+
+// 更新知识库
+export function updateKnowledge(id: string, patch: KnowledgePatch): KnowledgeItem | null {
+  const db = useDatabase()
+  const item = db.knowledge.find((k) => k.id === id)
+  if (!item) return null
+
+  Object.assign(item, patch)
+  item.updatedAt = new Date().toISOString()
+
+  return item
+}

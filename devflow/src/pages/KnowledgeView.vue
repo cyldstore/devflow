@@ -70,15 +70,22 @@
     <Card class="detail">
       <template v-if="selected">
         <header class="detail-head">
-          <div class="item-top">
-            <span class="item-type">{{ TYPE_LABELS[selected.type] }}</span>
-            <Chip v-if="selected.mastery" :tone="MASTERY_TONES[selected.mastery]">
-              {{ MASTERY_LABELS[selected.mastery] }}
-            </Chip>
-            <span v-if="selected.pinned" class="pin">
-              <Pin :size="11" aria-hidden="true" />
-              已置顶
-            </span>
+          <div class="detail-top">
+            <div class="item-top">
+              <span class="item-type">{{ TYPE_LABELS[selected.type] }}</span>
+              <Chip v-if="selected.mastery" :tone="MASTERY_TONES[selected.mastery]">
+                {{ MASTERY_LABELS[selected.mastery] }}
+              </Chip>
+              <span v-if="selected.pinned" class="pin">
+                <Pin :size="11" aria-hidden="true" />
+                已置顶
+              </span>
+            </div>
+
+            <Button variant="ghost" size="sm" @click="startEdit(selected)">
+              <Pencil :size="13" aria-hidden="true" />
+              编辑
+            </Button>
           </div>
 
           <h2 class="detail-title">{{ selected.title }}</h2>
@@ -122,12 +129,8 @@
     </AppDialog>
 
     <!-- 编辑抽屉 -->
-    <AppDrawer
-      v-model:open="editorOpen"
-      :title="`新建${TYPE_LABELS[draftType]}`"
-      :description="TYPE_HINTS[draftType]"
-    >
-      <form id="knowledge-form" class="form" @submit.prevent="saveNew">
+    <AppDrawer v-model:open="editorOpen" :title="drawerTitle" :description="drawerHint">
+      <form id="knowledge-form" class="form" @submit.prevent="save">
         <label class="field">
           <span class="field-label">{{ draftType === 'question' ? '题目' : '标题' }}</span>
           <input v-model="draft.title" class="input" type="text" required />
@@ -173,8 +176,8 @@
 
       <template #footer>
         <Button variant="ghost" @click="editorOpen = false">取消</Button>
-        <Button variant="lime" type="submit" form="knowledge-form" :disabled="!canCreate">
-          创建
+        <Button variant="lime" type="submit" form="knowledge-form" :disabled="!canSave">
+          {{ isEditing ? '保存' : '创建' }}
         </Button>
       </template>
     </AppDrawer>
@@ -183,18 +186,18 @@
 
 <script setup lang="ts">
 import { computed, ref, reactive } from 'vue'
-import { Pin, Plus } from 'lucide-vue-next'
+import { Pin, Plus, Pencil } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Chip from '@/components/ui/Chip.vue'
 import { filterKnowledge, KNOWLEDGE_TYPE_LABELS, sortKnowledge } from '@/lib/knowledge'
 import type { KnowledgeFilter } from '@/lib/knowledge'
 import { loadSeed, useDatabase } from '@/stores/db'
-import type { Mastery, KnowledgeType } from '@/types'
+import type { Mastery, KnowledgeType, KnowledgeItem } from '@/types'
 import { renderMarkdown } from '@/lib/markdown'
 import AppDialog from '@/components/ui/AppDialog.vue'
 import AppDrawer from '@/components/ui/AppDrawer.vue'
-import { createKnowledge } from '@/stores/knowledge'
+import { createKnowledge, updateKnowledge } from '@/stores/knowledge'
 import { toast } from '@/lib/toast'
 
 const TABS: { value: KnowledgeFilter; label: string }[] = [
@@ -259,7 +262,7 @@ const draft = reactive({
   content: '',
 })
 
-const canCreate = computed(() => draft.title.trim().length > 0 && draft.topic.trim().length > 0)
+const canSave = computed(() => draft.title.trim().length > 0 && draft.topic.trim().length > 0)
 
 function chooseType(type: KnowledgeType) {
   draftType.value = type
@@ -269,6 +272,7 @@ function chooseType(type: KnowledgeType) {
   draft.mastery = ''
   draft.content = CONTENT_TEMPLATES[type]
   createOpen.value = false
+  editingId.value = null
   editorOpen.value = true
 }
 
@@ -280,9 +284,19 @@ function parseTags(text: string): string[] {
   return [...new Set(tags)]
 }
 
-function saveNew() {
-  if (!canCreate.value) return
+// 保存
+function save() {
+  if (!canSave.value) return
+  if (editingId.value) {
+    saveEdit()
+  } else {
+    saveNew()
+  }
+}
 
+// 保存（新建）
+function saveNew() {
+  if (editingId.value) return
   const item = createKnowledge({
     type: draftType.value,
     title: draft.title,
@@ -297,6 +311,47 @@ function saveNew() {
   filter.value = 'all'
   editorOpen.value = false
   toast.add({ title: '已创建', description: item.title, status: 'success', duration: 3000 })
+}
+
+// 保存（编辑）
+function saveEdit() {
+  if (!editingId.value) return
+
+  const item = updateKnowledge(editingId.value, {
+    title: draft.title,
+    topic: draft.topic,
+    content: draft.content,
+    tags: parseTags(draft.tagsText),
+    mastery: draft.mastery || undefined,
+  })
+  if (!item) return
+
+  selectedId.value = item.id
+  editorOpen.value = false
+  toast.add({ title: '已保存', description: item.title, status: 'success', duration: 3000 })
+}
+
+const editingId = ref<string | null>(null)
+
+const isEditing = computed(() => editingId.value !== null)
+
+const drawerTitle = computed(
+  () => `${isEditing.value ? '编辑' : '新建'}${TYPE_LABELS[draftType.value]}`,
+)
+
+const drawerHint = computed(() =>
+  isEditing.value ? '修改后点保存生效。' : TYPE_HINTS[draftType.value],
+)
+
+function startEdit(item: KnowledgeItem) {
+  editingId.value = item.id
+  draftType.value = item.type
+  draft.title = item.title
+  draft.topic = item.topic
+  draft.tagsText = item.tags.join(', ')
+  draft.mastery = item.mastery ?? ''
+  draft.content = item.content
+  editorOpen.value = true
 }
 </script>
 
@@ -483,6 +538,13 @@ h1 {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   color: var(--color-text-faint);
+}
+
+.detail-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .prose {
