@@ -35,6 +35,7 @@
     <div v-else class="groups">
       <template v-for="group in groups" :key="group.key">
         <section class="group">
+          <!-- 已完成 -->
           <button
             v-if="group.key === 'done'"
             type="button"
@@ -48,32 +49,32 @@
             <span class="line" />
           </button>
 
+          <!-- 未完成 -->
           <h2 v-else class="group-label">
             <span>{{ group.label }}</span>
             <span class="count">{{ group.tasks.length }}</span>
             <span class="line" />
           </h2>
 
+          <!-- 未完成项或已完成展开项 -->
           <ul v-if="group.key !== 'done' || doneOpen" class="list">
             <li
               v-for="task in group.tasks"
               :key="task.id"
               :class="['row', { done: task.done, overdue: isOverdue(task, today) }]"
             >
-              <span class="check" aria-hidden="true">
-                <label class="check-wrap">
-                  <input
-                    class="check-input"
-                    type="checkbox"
-                    :checked="task.done"
-                    :aria-label="task.done ? `取消完成：${task.title}` : `完成：${task.title}`"
-                    @change="handleToggle(task)"
-                  />
-                  <span class="check" aria-hidden="true">
-                    <Check v-if="task.done" :size="12" :stroke-width="2.6" />
-                  </span>
-                </label>
-              </span>
+              <label class="check-wrap">
+                <input
+                  class="check-input"
+                  type="checkbox"
+                  :checked="task.done"
+                  :aria-label="task.done ? `取消完成：${task.title}` : `完成：${task.title}`"
+                  @change="handleToggle(task)"
+                />
+                <span class="check" aria-hidden="true">
+                  <Check v-if="task.done" :size="12" :stroke-width="2.6" />
+                </span>
+              </label>
 
               <div class="copy">
                 <p class="title">{{ task.title }}</p>
@@ -88,7 +89,17 @@
                 </div>
               </div>
 
-              <span :class="['priority', task.priority.toLowerCase()]">{{ task.priority }}</span>
+              <div class="class">
+                <span :class="['priority', task.priority.toLowerCase()]">{{ task.priority }}</span>
+                <button
+                  type="button"
+                  class="row-delete"
+                  :aria-label="`删除任务：${task.title}`"
+                  @click="handleDelete(task)"
+                >
+                  <Trash2 :size="14" aria-hidden="true" />
+                </button>
+              </div>
             </li>
           </ul>
         </section>
@@ -99,7 +110,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Check, ChevronRight } from 'lucide-vue-next'
+import { Check, ChevronRight, Trash2 } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Chip from '@/components/ui/Chip.vue'
@@ -108,9 +119,10 @@ import { groupTasks, isOverdue } from '@/lib/tasks'
 import { loadSeed, useDatabase } from '@/stores/db'
 import type { TaskCategory, Task } from '@/types'
 import { Plus } from 'lucide-vue-next'
-import { addTask, toggleTask } from '@/stores/tasks'
+import { addTask, toggleTask, removeTask, restoreTask } from '@/stores/tasks'
 import { toast } from '@/lib/toast'
 
+// 类别标签名称
 const CATEGORY_LABELS: Record<TaskCategory, string> = {
   learning: '学习',
   job: '求职',
@@ -118,6 +130,7 @@ const CATEGORY_LABELS: Record<TaskCategory, string> = {
   life: '生活',
 }
 
+// 类别标签样式
 const CATEGORY_TONES = {
   learning: 'sage',
   job: 'blue',
@@ -136,16 +149,19 @@ const overdueCount = computed(() => db.tasks.filter((task) => isOverdue(task, to
 const draft = ref('')
 const inputEl = ref<HTMLInputElement | null>(null)
 
+// 新增任务
 function submitTask() {
   const task = addTask(draft.value)
   if (!task) return
   draft.value = ''
 }
 
+// 输入框聚焦
 function focusInput() {
   inputEl.value?.focus()
 }
 
+// 完成/取消完成任务
 function handleToggle(task: Task) {
   const willBeDone = !task.done
   toggleTask(task.id)
@@ -163,6 +179,23 @@ function handleToggle(task: Task) {
       },
     })
   }
+}
+
+// 删除任务
+function handleDelete(task: Task) {
+  const removed = removeTask(task.id)
+  if (!removed) return
+
+  toast.add({
+    title: '已删除',
+    description: removed.task.title,
+    duration: 5000,
+    actionProps: {
+      label: '撤销',
+      altText: '撤销删除',
+      onClick: () => restoreTask(removed),
+    },
+  })
 }
 </script>
 
@@ -406,5 +439,51 @@ h1 {
 .check-input:focus-visible + .check {
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
+}
+
+.row-end {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 2px;
+}
+
+.row-delete {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 120ms ease,
+    color 120ms ease;
+}
+
+.row:hover .row-delete,
+.row:focus-within .row-delete {
+  opacity: 1;
+}
+
+.row-delete:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.row-delete:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
+}
+
+@media (hover: none) {
+  .row-delete {
+    opacity: 1;
+  }
 }
 </style>

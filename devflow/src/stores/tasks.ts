@@ -3,6 +3,12 @@ import { localDate } from '@/lib/date'
 import { createId } from '@/lib/id'
 import { useDatabase } from './db'
 
+export interface RemovedTask {
+  task: Task
+  index: number
+}
+
+// 添加任务
 export function addTask(title: string): Task | null {
   const trimmed = title.trim()
   if (!trimmed) return null
@@ -34,4 +40,23 @@ export function toggleTask(id: string): Task | null {
   task.updatedAt = now
 
   return task
+}
+
+// 移除任务
+export function removeTask(id: string): RemovedTask | null {
+  const db = useDatabase()
+  const index = db.tasks.findIndex((t) => t.id === id)
+  if (index === -1) return null
+
+  const [task] = db.tasks.splice(index, 1)
+  if (!task) return null
+
+  return { task, index }
+}
+
+// 撤销移除
+export function restoreTask(removed: RemovedTask): void {
+  const db = useDatabase()
+  const index = Math.min(removed.index, db.tasks.length)
+  db.tasks.splice(index, 0, removed.task)
 }
