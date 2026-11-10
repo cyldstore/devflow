@@ -175,17 +175,24 @@
       </form>
 
       <template #footer>
-        <Button variant="ghost" @click="editorOpen = false">取消</Button>
-        <Button variant="lime" type="submit" form="knowledge-form" :disabled="!canSave">
-          {{ isEditing ? '保存' : '创建' }}
-        </Button>
+        <template v-if="isEditing">
+          <span class="save-state" :data-state="saveState">{{ saveStateText }}</span>
+          <Button variant="ghost" @click="editorOpen = false">完成</Button>
+        </template>
+
+        <template v-else>
+          <Button variant="ghost" @click="editorOpen = false">取消</Button>
+          <Button variant="lime" type="submit" form="knowledge-form" :disabled="!canSave">
+            创建
+          </Button>
+        </template>
       </template>
     </AppDrawer>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive } from 'vue'
+import { computed, ref, reactive, nextTick, onBeforeUnmount, watch } from 'vue'
 import { Pin, Plus, Pencil } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
@@ -288,10 +295,11 @@ function parseTags(text: string): string[] {
 function save() {
   if (!canSave.value) return
   if (editingId.value) {
-    saveEdit()
-  } else {
-    saveNew()
+    clearSaveTimer()
+    persistDraft()
+    return
   }
+  saveNew()
 }
 
 // 保存（新建）
@@ -313,24 +321,6 @@ function saveNew() {
   toast.add({ title: '已创建', description: item.title, status: 'success', duration: 3000 })
 }
 
-// 保存（编辑）
-function saveEdit() {
-  if (!editingId.value) return
-
-  const item = updateKnowledge(editingId.value, {
-    title: draft.title,
-    topic: draft.topic,
-    content: draft.content,
-    tags: parseTags(draft.tagsText),
-    mastery: draft.mastery || undefined,
-  })
-  if (!item) return
-
-  selectedId.value = item.id
-  editorOpen.value = false
-  toast.add({ title: '已保存', description: item.title, status: 'success', duration: 3000 })
-}
-
 const editingId = ref<string | null>(null)
 
 const isEditing = computed(() => editingId.value !== null)
@@ -343,7 +333,12 @@ const drawerHint = computed(() =>
   isEditing.value ? '修改后点保存生效。' : TYPE_HINTS[draftType.value],
 )
 
+// 开始编辑幅值
 function startEdit(item: KnowledgeItem) {
+  hydrating = true
+  dirty = false
+  saveState.value = 'idle'
+
   editingId.value = item.id
   draftType.value = item.type
   draft.title = item.title
@@ -352,7 +347,94 @@ function startEdit(item: KnowledgeItem) {
   draft.mastery = item.mastery ?? ''
   draft.content = item.content
   editorOpen.value = true
+
+  nextTick(() => {
+    hydrating = false
+  })
 }
+
+type SaveState = 'idle' | 'saving' | 'saved' | 'invalid'
+
+// 自动保存延迟时间
+const AUTOSAVE_DELAY = 600
+
+const saveState = ref<SaveState>('idle')
+let saveTimer: ReturnType<typeof setTimeout> | undefined
+let hydrating = false
+let dirty = false //记录是否有未更新的数据
+
+const saveStateText = computed(() => {
+  if (saveState.value === 'saving') return '正在保存…'
+  if (saveState.value === 'saved') return '已保存'
+  if (saveState.value === 'invalid') return '标题和主题不能为空'
+  return ''
+})
+
+// 清除计时器
+function clearSaveTimer() {
+  if (saveTimer !== undefined) {
+    clearTimeout(saveTimer)
+    saveTimer = undefined
+  }
+}
+
+// 更新数据
+function persistDraft() {
+  if (!editingId.value || !canSave.value) {
+    saveState.value = 'invalid'
+    return
+  }
+
+  const item = updateKnowledge(editingId.value, {
+    title: draft.title.trim(),
+    topic: draft.topic.trim(),
+    content: draft.content,
+    tags: parseTags(draft.tagsText),
+    mastery: draft.mastery || undefined,
+  })
+  if (!item) return
+
+  dirty = false
+  saveState.value = 'saved'
+}
+
+// 自动保存
+function scheduleSave() {
+  if (!isEditing.value || !editorOpen.value) return
+
+  if (!canSave.value) {
+    clearSaveTimer()
+    saveState.value = 'invalid'
+    return
+  }
+
+  saveState.value = 'saving'
+  clearSaveTimer()
+  saveTimer = setTimeout(() => {
+    saveTimer = undefined
+    persistDraft()
+  }, AUTOSAVE_DELAY)
+}
+
+watch(draft, () => {
+  if (hydrating) return
+  if (!isEditing.value) return
+  dirty = true
+  scheduleSave()
+})
+
+watch(editorOpen, (open) => {
+  if (open) return
+  clearSaveTimer()
+  if (dirty) persistDraft()
+  saveState.value = 'idle'
+  dirty = false
+})
+
+onBeforeUnmount(() => {
+  clearSaveTimer()
+  if (dirty) persistDraft()
+})
 </script>
 
 <style scoped>
@@ -751,5 +833,19 @@ h1 {
   .field-row {
     grid-template-columns: 1fr;
   }
+}
+
+.save-state {
+  margin-right: auto;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.save-state[data-state='saved'] {
+  color: var(--color-tone-sage-fg);
+}
+
+.save-state[data-state='invalid'] {
+  color: var(--color-danger);
 }
 </style>
