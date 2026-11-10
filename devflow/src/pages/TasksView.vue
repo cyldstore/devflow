@@ -11,6 +11,7 @@
       </p>
     </header>
 
+    <!-- 添加任务 -->
     <form class="quick-add" @submit.prevent="submitTask">
       <Plus :size="14" aria-hidden="true" />
       <input
@@ -23,15 +24,38 @@
       />
     </form>
 
-    <Card v-if="groups.length === 0" class="empty">
+    <!-- 筛选 -->
+    <div class="filters" role="group" aria-label="任务筛选">
+      <button
+        v-for="f in FILTERS"
+        :key="f.value"
+        type="button"
+        :class="['filter', { active: filter === f.value }]"
+        :aria-pressed="filter === f.value"
+        @click="filter = f.value"
+      >
+        {{ f.label }}
+      </button>
+    </div>
+
+    <Card v-if="db.tasks.length === 0" class="empty">
       <div class="empty-body">
         <p class="empty-title">还没有任务</p>
-        <p class="empty-text">先载入一组示例数据看看效果，或者在上方输入框写下第一件事。</p>
+        <p class="empty-text">在上方输入框写下第一件事，或者先载入示例数据。</p>
         <Button variant="lime" @click="focusInput">新建第一条</Button>
         <Button variant="ghost" @click="loadSeed">载入示例数据</Button>
       </div>
     </Card>
 
+    <Card v-else-if="groups.length === 0" class="empty">
+      <div class="empty-body">
+        <p class="empty-title">这个范围没有任务</p>
+        <p class="empty-text">「{{ FILTERS.find((f) => f.value === filter)?.label }}」里是空的。</p>
+        <Button variant="lime" @click="filter = 'all'">清除筛选</Button>
+      </div>
+    </Card>
+
+    <!-- 任务组 -->
     <div v-else class="groups">
       <template v-for="group in groups" :key="group.key">
         <section class="group">
@@ -186,7 +210,7 @@ import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Chip from '@/components/ui/Chip.vue'
 import { localDate } from '@/lib/date'
-import { groupTasks, isOverdue } from '@/lib/tasks'
+import { groupTasks, isOverdue, filterTasks, type TaskFilter } from '@/lib/tasks'
 import { loadSeed, useDatabase } from '@/stores/db'
 import type { TaskCategory, Task, Priority } from '@/types'
 import { addTask, toggleTask, removeTask, restoreTask, updateTask } from '@/stores/tasks'
@@ -213,7 +237,6 @@ const db = useDatabase()
 const today = localDate()
 const doneOpen = ref(false)
 
-const groups = computed(() => groupTasks(db.tasks, today))
 const openCount = computed(() => db.tasks.filter((task) => !task.done).length)
 const overdueCount = computed(() => db.tasks.filter((task) => isOverdue(task, today)).length)
 
@@ -332,6 +355,17 @@ function onRowClick(event: MouseEvent, task: Task) {
   if (target.closest('button, input, label, a, select, textarea')) return
   openEditor(task)
 }
+
+const FILTERS: { value: TaskFilter; label: string }[] = [
+  { value: 'today', label: '今天' },
+  { value: 'week', label: '本周' },
+  { value: 'all', label: '全部' },
+]
+
+const filter = ref<TaskFilter>('today')
+
+const filtered = computed(() => filterTasks(db.tasks, filter.value, today))
+const groups = computed(() => groupTasks(filtered.value, today))
 </script>
 
 <style scoped>
@@ -676,5 +710,43 @@ h1 {
   .field-row {
     grid-template-columns: 1fr;
   }
+}
+
+.filters {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: var(--space-1);
+  padding: 3px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.filter {
+  height: 28px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.filter:hover {
+  color: var(--color-text-strong);
+}
+
+.filter.active {
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+.filter:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
 }
 </style>
