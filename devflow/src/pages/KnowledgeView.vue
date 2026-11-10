@@ -12,29 +12,28 @@
         </div>
       </header>
 
-      <div class="search">
-        <!-- keyword搜索 -->
-        <Search :size="14" aria-hidden="true" />
-        <input
-          v-model="keyword"
-          type="search"
-          class="search-input"
-          placeholder="搜索标题、主题、标签"
-          aria-label="搜索知识库"
-        />
-        <button
-          v-if="keyword"
-          type="button"
-          class="search-clear"
-          aria-label="清除搜索"
-          @click="keyword = ''"
-        >
-          <X :size="13" aria-hidden="true" />
-        </button>
-      </div>
+      <!-- 搜索 -->
+      <div class="filters">
+        <div class="search">
+          <Search :size="14" aria-hidden="true" />
+          <input
+            v-model="keyword"
+            type="search"
+            class="search-input"
+            placeholder="搜索标题、主题、标签"
+            aria-label="搜索知识库"
+          />
+          <button
+            v-if="keyword"
+            type="button"
+            class="search-clear"
+            aria-label="清除搜索"
+            @click="keyword = ''"
+          >
+            <X :size="13" aria-hidden="true" />
+          </button>
+        </div>
 
-      <div class="filter-row">
-        <!-- 类型筛选 -->
         <div class="tabs" role="group" aria-label="按类型筛选">
           <button
             v-for="tab in TABS"
@@ -48,13 +47,29 @@
           </button>
         </div>
 
-        <!-- 掌握度搜索 -->
-        <select v-model="masteryFilter" class="mastery-select" aria-label="按掌握度筛选">
-          <option value="all">全部掌握度</option>
-          <option value="rusty">生疏</option>
-          <option value="learning">学习中</option>
-          <option value="solid">熟练</option>
-        </select>
+        <div class="mastery-row">
+          <span class="filter-label">掌握度</span>
+          <select v-model="masteryFilter" class="mastery-select" aria-label="按掌握度筛选">
+            <option value="all">全部</option>
+            <option value="rusty">生疏</option>
+            <option value="learning">学习中</option>
+            <option value="solid">熟练</option>
+          </select>
+        </div>
+
+        <div v-if="allTags.length > 0" class="tag-filter" role="group" aria-label="按标签筛选">
+          <button
+            v-for="tag in allTags"
+            :key="tag"
+            type="button"
+            class="tag-chip"
+            :class="{ active: activeTags.includes(tag) }"
+            :aria-pressed="activeTags.includes(tag)"
+            @click="toggleTag(tag)"
+          >
+            #{{ tag }}
+          </button>
+        </div>
       </div>
 
       <div v-if="db.knowledge.length === 0" class="empty">
@@ -559,6 +574,7 @@ const items = computed(() =>
       type: filter.value,
       keyword: keyword.value,
       mastery: masteryFilter.value,
+      tags: [...activeTags.value],
     }),
   ),
 )
@@ -568,6 +584,26 @@ function clearFilters() {
   filter.value = 'all'
   keyword.value = ''
   masteryFilter.value = 'all'
+  activeTags.value = []
+}
+
+const activeTags = ref<string[]>([])
+
+const allTags = computed(() => {
+  const tags = new Set<string>()
+  for (const item of db.knowledge) {
+    for (const tag of item.tags) tags.add(tag)
+  }
+  return [...tags].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
+})
+
+function toggleTag(tag: string) {
+  const index = activeTags.value.indexOf(tag)
+  if (index === -1) {
+    activeTags.value.push(tag)
+  } else {
+    activeTags.value.splice(index, 1)
+  }
 }
 </script>
 
@@ -606,10 +642,21 @@ h1 {
   overflow-x: auto;
 }
 
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  width: fit-content;
+  padding: 3px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
 .tab {
   height: 26px;
-  padding: 0 var(--space-3);
-  border: 1px solid transparent;
+  padding: 0 var(--space-4);
+  border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text-muted);
@@ -624,10 +671,10 @@ h1 {
 }
 
 .tab.active {
-  background: var(--color-background);
-  border-color: var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text-strong);
   font-weight: 600;
+  box-shadow: var(--shadow-card);
 }
 
 .tab:focus-visible {
@@ -1005,12 +1052,19 @@ h1 {
   color: var(--color-text-muted);
 }
 
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-5) var(--space-4);
+}
+
 .search {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   height: 36px;
-  margin: 0 var(--space-5) var(--space-3);
+  margin: 0;
   padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1065,18 +1119,18 @@ input[type='search']::-webkit-search-cancel-button {
   display: none;
 }
 
-.filter-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-right: var(--space-5);
+.filter-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
 }
 
 .mastery-select {
-  flex: none;
-  height: 26px;
-  padding: 0 var(--space-2);
+  width: 150px;
+  height: 28px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-background);
@@ -1086,6 +1140,43 @@ input[type='search']::-webkit-search-cancel-button {
 }
 
 .mastery-select:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
+}
+
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0;
+}
+
+.tag-chip {
+  flex: none;
+  height: 22px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-2xs);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tag-chip:hover {
+  border-color: var(--color-accent-strong);
+  color: var(--color-text-strong);
+}
+
+.tag-chip.active {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-strong);
+  color: var(--color-tone-lime-fg);
+}
+
+.tag-chip:focus-visible {
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
 }

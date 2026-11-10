@@ -13,6 +13,7 @@ export interface KnowledgeQuery {
   type?: KnowledgeFilter
   keyword?: string
   mastery?: MasteryFilter
+  tags?: string[]
 }
 
 // 筛选知识库
@@ -20,10 +21,17 @@ export function filterKnowledge(items: KnowledgeItem[], query: KnowledgeQuery): 
   const keyword = query.keyword?.trim().toLowerCase() ?? ''
   const type = query.type ?? 'all'
   const mastery = query.mastery ?? 'all'
+  const tags = query.tags ?? []
 
   return items.filter((item) => {
     if (type !== 'all' && item.type !== type) return false
     if (mastery !== 'all' && item.mastery !== mastery) return false
+
+    if (tags.length > 0) {
+      const itemTags = item.tags.map((tag) => tag.toLowerCase())
+      if (!tags.every((tag) => itemTags.includes(tag.toLowerCase()))) return false
+    }
+
     if (!keyword) return true
 
     const haystack = `${item.title} ${item.topic} ${item.tags.join(' ')}`.toLowerCase()
