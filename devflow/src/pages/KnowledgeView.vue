@@ -12,18 +12,49 @@
         </div>
       </header>
 
-      <!-- 类型筛选 -->
-      <div class="tabs" role="group" aria-label="按类型筛选">
+      <div class="search">
+        <!-- keyword搜索 -->
+        <Search :size="14" aria-hidden="true" />
+        <input
+          v-model="keyword"
+          type="search"
+          class="search-input"
+          placeholder="搜索标题、主题、标签"
+          aria-label="搜索知识库"
+        />
         <button
-          v-for="tab in TABS"
-          :key="tab.value"
+          v-if="keyword"
           type="button"
-          :class="['tab', { active: filter === tab.value }]"
-          :aria-pressed="filter === tab.value"
-          @click="filter = tab.value"
+          class="search-clear"
+          aria-label="清除搜索"
+          @click="keyword = ''"
         >
-          {{ tab.label }}
+          <X :size="13" aria-hidden="true" />
         </button>
+      </div>
+
+      <div class="filter-row">
+        <!-- 类型筛选 -->
+        <div class="tabs" role="group" aria-label="按类型筛选">
+          <button
+            v-for="tab in TABS"
+            :key="tab.value"
+            type="button"
+            :class="['tab', { active: filter === tab.value }]"
+            :aria-pressed="filter === tab.value"
+            @click="filter = tab.value"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <!-- 掌握度搜索 -->
+        <select v-model="masteryFilter" class="mastery-select" aria-label="按掌握度筛选">
+          <option value="all">全部掌握度</option>
+          <option value="rusty">生疏</option>
+          <option value="learning">学习中</option>
+          <option value="solid">熟练</option>
+        </select>
       </div>
 
       <div v-if="db.knowledge.length === 0" class="empty">
@@ -33,9 +64,12 @@
       </div>
 
       <div v-else-if="items.length === 0" class="empty">
-        <p class="empty-title">这个类型下还没有内容</p>
-        <p class="empty-text">换一个类型，或者切回"全部"。</p>
-        <Button variant="ghost" @click="filter = 'all'">清除筛选</Button>
+        <p class="empty-title">
+          <template v-if="keyword">没有匹配「{{ keyword }}」的内容</template>
+          <template v-else>当前筛选下没有内容</template>
+        </p>
+        <p class="empty-text">换个关键词，或者清除筛选看看全部。</p>
+        <Button variant="ghost" @click="clearFilters">清除筛选</Button>
       </div>
 
       <!-- 标题区 -->
@@ -225,12 +259,12 @@
 
 <script setup lang="ts">
 import { computed, ref, reactive, nextTick, onBeforeUnmount, watch } from 'vue'
-import { Pin, Plus, Pencil, Trash2 } from 'lucide-vue-next'
+import { Pin, Plus, Pencil, Trash2, Search, X } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Chip from '@/components/ui/Chip.vue'
 import { filterKnowledge, KNOWLEDGE_TYPE_LABELS, sortKnowledge } from '@/lib/knowledge'
-import type { KnowledgeFilter } from '@/lib/knowledge'
+import type { KnowledgeFilter, MasteryFilter } from '@/lib/knowledge'
 import { loadSeed, useDatabase } from '@/stores/db'
 import type { Mastery, KnowledgeType, KnowledgeItem } from '@/types'
 import { renderMarkdown } from '@/lib/markdown'
@@ -267,8 +301,6 @@ const MASTERY_TONES = {
 
 const db = useDatabase()
 const filter = ref<KnowledgeFilter>('all')
-
-const items = computed(() => sortKnowledge(filterKnowledge(db.knowledge, filter.value)))
 
 const selectedId = ref<string | null>(null)
 
@@ -517,6 +549,26 @@ function togglePin(item: KnowledgeItem | null): void {
     })
   }
 }
+
+const keyword = ref('')
+const masteryFilter = ref<MasteryFilter>('all')
+
+const items = computed(() =>
+  sortKnowledge(
+    filterKnowledge(db.knowledge, {
+      type: filter.value,
+      keyword: keyword.value,
+      mastery: masteryFilter.value,
+    }),
+  ),
+)
+
+// 重置搜索参数
+function clearFilters() {
+  filter.value = 'all'
+  keyword.value = ''
+  masteryFilter.value = 'all'
+}
 </script>
 
 <style scoped>
@@ -550,7 +602,7 @@ h1 {
 .tabs {
   display: flex;
   gap: var(--space-1);
-  padding: 0 var(--space-5) var(--space-3);
+  padding: 0 0 var(--space-3) var(--space-5);
   overflow-x: auto;
 }
 
@@ -951,5 +1003,90 @@ h1 {
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
   color: var(--color-text-muted);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 36px;
+  margin: 0 var(--space-5) var(--space-3);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-text-faint);
+}
+
+.search:focus-within {
+  border-color: var(--color-accent-strong);
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-faint);
+}
+
+.search-clear {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-faint);
+  cursor: pointer;
+}
+
+.search-clear:hover {
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+}
+
+.search-clear:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 1px;
+}
+
+input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  display: none;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-right: var(--space-5);
+}
+
+.mastery-select {
+  flex: none;
+  height: 26px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-xs);
+}
+
+.mastery-select:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
 }
 </style>

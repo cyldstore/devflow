@@ -1,6 +1,7 @@
-import type { KnowledgeItem, KnowledgeType } from '@/types'
+import type { KnowledgeItem, KnowledgeType, Mastery } from '@/types'
 
 export type KnowledgeFilter = 'all' | KnowledgeType
+export type MasteryFilter = 'all' | Mastery
 
 export const KNOWLEDGE_TYPE_LABELS: Record<KnowledgeType, string> = {
   note: '笔记',
@@ -8,10 +9,26 @@ export const KNOWLEDGE_TYPE_LABELS: Record<KnowledgeType, string> = {
   snippet: '代码片段',
 }
 
+export interface KnowledgeQuery {
+  type?: KnowledgeFilter
+  keyword?: string
+  mastery?: MasteryFilter
+}
+
 // 筛选知识库
-export function filterKnowledge(items: KnowledgeItem[], filter: KnowledgeFilter): KnowledgeItem[] {
-  if (filter === 'all') return items
-  return items.filter((item) => item.type === filter)
+export function filterKnowledge(items: KnowledgeItem[], query: KnowledgeQuery): KnowledgeItem[] {
+  const keyword = query.keyword?.trim().toLowerCase() ?? ''
+  const type = query.type ?? 'all'
+  const mastery = query.mastery ?? 'all'
+
+  return items.filter((item) => {
+    if (type !== 'all' && item.type !== type) return false
+    if (mastery !== 'all' && item.mastery !== mastery) return false
+    if (!keyword) return true
+
+    const haystack = `${item.title} ${item.topic} ${item.tags.join(' ')}`.toLowerCase()
+    return haystack.includes(keyword)
+  })
 }
 
 // 知识库排序
