@@ -32,29 +32,63 @@
       </div>
 
       <ul v-else class="list">
-        <li v-for="item in items" :key="item.id" class="item">
-          <div class="item-top">
-            <Pin v-if="item.pinned" :size="11" aria-label="已置顶" />
-            <span class="item-type">{{ TYPE_LABELS[item.type] }}</span>
-            <Chip v-if="item.mastery" :tone="MASTERY_TONES[item.mastery]">
-              {{ MASTERY_LABELS[item.mastery] }}
-            </Chip>
-          </div>
+        <li v-for="item in items" :key="item.id" class="item-row">
+          <button
+            type="button"
+            :class="['item', { active: selectedId === item.id }]"
+            :aria-current="selectedId === item.id ? 'true' : undefined"
+            @click="selectedId = item.id"
+          >
+            <div class="item-top">
+              <Pin v-if="item.pinned" :size="11" aria-hidden="true" />
+              <span class="item-type">{{ TYPE_LABELS[item.type] }}</span>
+              <Chip v-if="item.mastery" :tone="MASTERY_TONES[item.mastery]">
+                {{ MASTERY_LABELS[item.mastery] }}
+              </Chip>
+            </div>
 
-          <p class="item-title">{{ item.title }}</p>
+            <p class="item-title">{{ item.title }}</p>
 
-          <div class="item-meta">
-            <span class="topic">{{ item.topic }}</span>
-            <span v-for="tag in item.tags" :key="tag" class="tag">#{{ tag }}</span>
-          </div>
+            <div class="item-meta">
+              <span class="topic">{{ item.topic }}</span>
+              <span v-for="tag in item.tags" :key="tag" class="tag">#{{ tag }}</span>
+            </div>
+          </button>
         </li>
       </ul>
     </Card>
 
     <Card class="detail">
-      <div class="detail-empty">
+      <template v-if="selected">
+        <header class="detail-head">
+          <div class="item-top">
+            <span class="item-type">{{ TYPE_LABELS[selected.type] }}</span>
+            <Chip v-if="selected.mastery" :tone="MASTERY_TONES[selected.mastery]">
+              {{ MASTERY_LABELS[selected.mastery] }}
+            </Chip>
+            <span v-if="selected.pinned" class="pin">
+              <Pin :size="11" aria-hidden="true" />
+              已置顶
+            </span>
+          </div>
+
+          <h2 class="detail-title">{{ selected.title }}</h2>
+
+          <div class="item-meta">
+            <span class="topic">{{ selected.topic }}</span>
+            <span v-for="tag in selected.tags" :key="tag" class="tag">#{{ tag }}</span>
+            <time class="detail-time" :datetime="selected.updatedAt">
+              更新于 {{ selected.updatedAt.slice(0, 10) }}
+            </time>
+          </div>
+        </header>
+
+        <div class="prose" v-html="selectedHtml" />
+      </template>
+
+      <div v-else class="detail-empty">
         <p class="detail-title">选择左侧条目查看</p>
-        <p class="detail-text">详情、编辑和自动保存在下一步实现。</p>
+        <p class="detail-text">点一条笔记、面试题或代码片段，内容会显示在这里。</p>
       </div>
     </Card>
   </section>
@@ -70,6 +104,7 @@ import { filterKnowledge, KNOWLEDGE_TYPE_LABELS, sortKnowledge } from '@/lib/kno
 import type { KnowledgeFilter } from '@/lib/knowledge'
 import { loadSeed, useDatabase } from '@/stores/db'
 import type { Mastery } from '@/types'
+import { renderMarkdown } from '@/lib/markdown'
 
 const TABS: { value: KnowledgeFilter; label: string }[] = [
   { value: 'all', label: '全部' },
@@ -96,6 +131,12 @@ const db = useDatabase()
 const filter = ref<KnowledgeFilter>('all')
 
 const items = computed(() => sortKnowledge(filterKnowledge(db.knowledge, filter.value)))
+
+const selectedId = ref<string | null>(null)
+
+const selected = computed(() => db.knowledge.find((item) => item.id === selectedId.value) ?? null)
+
+const selectedHtml = computed(() => (selected.value ? renderMarkdown(selected.value.content) : ''))
 </script>
 
 <style scoped>
@@ -168,10 +209,25 @@ h1 {
   list-style: none;
 }
 
+.item-row {
+  list-style: none;
+}
+
+.item-row + .item-row {
+  border-top: 1px solid var(--color-border);
+}
+
 .item {
+  display: block;
+  width: 100%;
   padding: var(--space-4);
+  border: none;
   border-radius: var(--radius-sm);
-  cursor: default;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .item + .item {
@@ -215,6 +271,15 @@ h1 {
   color: var(--color-text-faint);
 }
 
+.item.active {
+  background: var(--color-accent-soft);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: -2px;
+}
+
 .topic {
   font-weight: 600;
 }
@@ -227,6 +292,11 @@ h1 {
   min-height: 320px;
 }
 
+.detail-head {
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
 .detail-empty {
   display: flex;
   flex-direction: column;
@@ -235,9 +305,9 @@ h1 {
 }
 
 .detail-title {
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: 600;
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--text-xl);
+  letter-spacing: -0.02em;
   color: var(--color-text-strong);
 }
 
@@ -247,13 +317,114 @@ h1 {
   color: var(--color-text-muted);
 }
 
+.detail-time {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+.prose {
+  padding: var(--space-6);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.prose :deep(h1),
+.prose :deep(h2),
+.prose :deep(h3) {
+  margin: var(--space-6) 0 var(--space-3);
+  color: var(--color-text-strong);
+  letter-spacing: -0.02em;
+}
+
+.prose :deep(h1) {
+  font-size: var(--text-xl);
+}
+
+.prose :deep(h2) {
+  font-size: var(--text-lg);
+}
+
+.prose :deep(h3) {
+  font-size: var(--text-base);
+}
+
+.prose :deep(p) {
+  margin: 0 0 var(--space-4);
+}
+
+.prose :deep(ul),
+.prose :deep(ol) {
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-6);
+}
+
+.prose :deep(li) {
+  margin-bottom: var(--space-1);
+}
+
+.prose :deep(code) {
+  padding: 2px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--color-background);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+.prose :deep(pre) {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  overflow-x: auto;
+}
+
+.prose :deep(pre code) {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: var(--text-sm);
+}
+
+.prose :deep(blockquote) {
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-accent-strong);
+  color: var(--color-text-muted);
+}
+
+.prose :deep(a) {
+  color: var(--color-tone-lime-fg);
+  text-decoration: underline;
+}
+
+.prose :deep(hr) {
+  margin: var(--space-5) 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.prose :deep(table) {
+  width: 100%;
+  margin-bottom: var(--space-4);
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.prose :deep(th),
+.prose :deep(td) {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
 @media (max-width: 1023px) {
   .knowledge {
     grid-template-columns: 1fr;
-  }
-
-  .detail {
-    display: none;
   }
 }
 </style>
