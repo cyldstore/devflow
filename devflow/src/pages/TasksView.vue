@@ -660,58 +660,6 @@ h1 {
   }
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-
-.field-label {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
-
-.input {
-  height: 36px;
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--text-base);
-}
-
-.input:focus-visible {
-  outline: 2px solid var(--color-accent-strong);
-  outline-offset: 1px;
-}
-
-.textarea {
-  height: auto;
-  padding: var(--space-3) var(--space-4);
-  resize: vertical;
-  line-height: var(--leading-normal);
-}
-
-@media (max-width: 767px) {
-  .field-row {
-    grid-template-columns: 1fr;
-  }
-}
-
 .filters {
   display: inline-flex;
   align-self: flex-start;

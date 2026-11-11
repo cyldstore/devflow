@@ -39,6 +39,7 @@ export interface Application {
   city?: string
   salary?: string
   channel?: string
+  channelUrl?: string
   stage: JobStage
   priority: Priority
   appliedAt?: string

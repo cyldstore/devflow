@@ -5,10 +5,16 @@
         <p class="eyebrow">JOBS</p>
         <h1>求职</h1>
       </div>
-      <p class="summary">
-        {{ activeCount }} 个进行中
-        <template v-if="overdueCount > 0"> · {{ overdueCount }} 个待跟进</template>
-      </p>
+      <div class="head-actions">
+        <p class="summary">
+          {{ activeCount }} 个进行中
+          <template v-if="overdueCount > 0"> · {{ overdueCount }} 个待跟进</template>
+        </p>
+        <Button variant="lime" @click="openAdd">
+          <Plus :size="14" aria-hidden="true" />
+          添加投递
+        </Button>
+      </div>
     </header>
 
     <!-- 内容区 -->
@@ -79,9 +85,21 @@
             <dt>薪资</dt>
             <dd>{{ selected.salary }}</dd>
           </div>
-          <div v-if="selected.channel" class="fact">
+          <div v-if="selected.channel || selected.channelUrl" class="fact">
             <dt>渠道</dt>
-            <dd>{{ selected.channel }}</dd>
+            <dd>
+              <a
+                v-if="channelHref"
+                :href="channelHref"
+                class="channel-link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ selected.channel || hostOf(channelHref) }}
+                <ExternalLink :size="11" aria-hidden="true" />
+              </a>
+              <template v-else>{{ selected.channel }}</template>
+            </dd>
           </div>
           <div v-if="selected.appliedAt" class="fact">
             <dt>投递日期</dt>
@@ -120,18 +138,111 @@
         </section>
       </template>
     </AppDrawer>
+
+    <!-- 新增编辑抽屉 -->
+    <AppDrawer v-model:open="addOpen" title="添加投递" description="先记下来，再决定要不要投。">
+      <form id="application-form" class="form" @submit.prevent="saveApplication">
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">公司（必填）</span>
+            <input v-model="draft.company" class="input" type="text" required />
+          </label>
+
+          <label class="field">
+            <span class="field-label">岗位（必填）</span>
+            <input v-model="draft.role" class="input" type="text" required />
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">城市</span>
+            <input v-model="draft.city" class="input" type="text" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">薪资</span>
+            <input v-model="draft.salary" class="input" type="text" placeholder="如 20-30K" />
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">渠道</span>
+            <input v-model="draft.channel" class="input" type="text" placeholder="官网 / 内推" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">渠道链接</span>
+            <input
+              v-model="draft.channelUrl"
+              class="input"
+              type="text"
+              inputmode="url"
+              placeholder="粘贴岗位页地址"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">优先级</span>
+            <select v-model="draft.priority" class="input">
+              <option value="P0">P0 · 最想去</option>
+              <option value="P1">P1 · 重点</option>
+              <option value="P2">P2 · 备选</option>
+            </select>
+          </label>
+        </div>
+
+        <p v-if="!channelUrlValid" class="field-hint">链接需要是 http:// 或 https:// 地址。</p>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">下一步动作</span>
+            <input
+              v-model="draft.nextLabel"
+              class="input"
+              type="text"
+              placeholder="如 投递简历 / 等回复"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">下一步日期</span>
+            <input v-model="draft.nextDate" class="input" type="date" />
+          </label>
+        </div>
+
+        <p v-if="!nextActionValid" class="field-hint">下一步动作和日期需要同时填写，或者都留空。</p>
+
+        <label class="field">
+          <span class="field-label">备注</span>
+          <textarea v-model="draft.note" class="input textarea" rows="3" />
+        </label>
+      </form>
+
+      <template #footer>
+        <Button variant="ghost" @click="addOpen = false">取消</Button>
+        <Button variant="lime" type="submit" form="application-form" :disabled="!canCreate">
+          添加
+        </Button>
+      </template>
+    </AppDrawer>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, watch, ref } from 'vue'
-import { Calendar } from 'lucide-vue-next'
+import { computed, watch, ref, reactive } from 'vue'
+import { Calendar, Plus, ExternalLink } from 'lucide-vue-next'
 import { groupApplications, isFollowUpOverdue, JOB_STAGES } from '@/lib/jobs'
 import { localDate } from '@/lib/date'
 import { useDatabase } from '@/stores/db'
 import AppDrawer from '@/components/ui/AppDrawer.vue'
 import Chip from '@/components/ui/Chip.vue'
-import type { JobStage, TimelineEvent } from '@/types'
+import type { JobStage, TimelineEvent, Priority } from '@/types'
+import Button from '@/components/ui/Button.vue'
+import { createApplication } from '@/stores/applications'
+import { toast } from '@/lib/toast'
+import { normalizeHttpUrl, hostOf } from '@/lib/url'
 
 const db = useDatabase()
 const today = localDate()
@@ -180,6 +291,92 @@ function openDetail(app: { id: string }) {
 watch(detailOpen, (open) => {
   if (!open) selectedId.value = null
 })
+
+const addOpen = ref(false)
+
+const draft = reactive({
+  company: '',
+  role: '',
+  city: '',
+  salary: '',
+  channel: '',
+  channelUrl: '',
+  priority: 'P1' as Priority,
+  nextLabel: '',
+  nextDate: '',
+  note: '',
+})
+
+const nextActionValid = computed(() => {
+  const hasLabel = draft.nextLabel.trim() !== ''
+  const hasDate = draft.nextDate !== ''
+  return (hasLabel && hasDate) || (!hasLabel && !hasDate)
+})
+
+const canCreate = computed(
+  () =>
+    draft.company.trim() !== '' &&
+    draft.role.trim() !== '' &&
+    nextActionValid.value &&
+    channelUrlValid.value,
+)
+
+// 初始化数据
+function openAdd() {
+  Object.assign(draft, {
+    company: '',
+    role: '',
+    city: '',
+    salary: '',
+    channel: '',
+    channelUrl: '',
+    priority: 'P1',
+    nextLabel: '',
+    nextDate: '',
+    note: '',
+  })
+  addOpen.value = true
+}
+
+// 保存
+function saveApplication() {
+  if (!canCreate.value) return
+
+  const app = createApplication({
+    company: draft.company,
+    role: draft.role,
+    city: draft.city,
+    salary: draft.salary,
+    channel: draft.channel,
+    channelUrl: draft.channelUrl,
+    priority: draft.priority,
+    nextAction:
+      draft.nextLabel.trim() && draft.nextDate
+        ? { label: draft.nextLabel.trim(), date: draft.nextDate }
+        : undefined,
+    note: draft.note,
+  })
+  if (!app) return
+
+  addOpen.value = false
+  toast.add({
+    title: '已添加投递',
+    description: `${app.company} · ${app.role}`,
+    status: 'success',
+    duration: 3000,
+  })
+}
+
+// 校验链接
+const channelUrlValid = computed(() => {
+  if (!draft.channelUrl.trim()) return true
+  return normalizeHttpUrl(draft.channelUrl) !== null
+})
+
+const channelHref = computed(() => {
+  const raw = selected.value?.channelUrl
+  return raw ? normalizeHttpUrl(raw) : null
+})
 </script>
 
 <style scoped>
@@ -208,6 +405,12 @@ h1 {
   margin: 0;
   font-size: var(--text-xl);
   color: var(--color-text-strong);
+}
+
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .summary {
@@ -423,6 +626,19 @@ h1 {
   margin: 0;
   font-size: var(--text-sm);
   color: var(--color-text);
+}
+
+.channel-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--color-tone-lime-fg);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.channel-link:hover {
+  color: var(--color-accent-strong);
 }
 
 .block {
