@@ -32,6 +32,7 @@ export interface InsightSummary {
   hasActivity: boolean
 }
 
+// 按指定跨度生成到指定时间的时间数组
 export function rangeDates(today: string, days: InsightRange): string[] {
   return Array.from({ length: days }, (_, index) => addDays(today, index - (days - 1)))
 }
@@ -57,6 +58,7 @@ export function summarize(db: Database, days: InsightRange, today: string): Insi
   const studyMinutes = studyLogs.reduce((sum, log) => sum + log.minutes, 0)
 
   const minutesByDate = new Map<string, number>()
+  // 每天的学习时长
   for (const log of studyLogs) {
     minutesByDate.set(log.date, (minutesByDate.get(log.date) ?? 0) + log.minutes)
   }
@@ -68,6 +70,7 @@ export function summarize(db: Database, days: InsightRange, today: string): Insi
 
   const applications = db.applications.filter((app) => inRange(app.appliedAt)).length
 
+  // 面试数
   const interviews = db.applications.reduce((count, app) => {
     return (
       count +
@@ -75,6 +78,7 @@ export function summarize(db: Database, days: InsightRange, today: string): Insi
     )
   }, 0)
 
+  // 汇总知识标签不同熟练度数量
   const topicMap = new Map<string, TopicMastery>()
   for (const item of db.knowledge) {
     if (!item.mastery) continue
