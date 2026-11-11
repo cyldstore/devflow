@@ -19,7 +19,14 @@
 
     <!-- 内容区 -->
     <div class="board">
-      <section v-for="column in columns" :key="column.stage" class="column">
+      <section
+        v-for="column in columns"
+        :key="column.stage"
+        :class="['column', { 'drop-target': dragOverStage === column.stage }]"
+        @dragover.prevent="onDragOver(column.stage)"
+        @dragleave="dragOverStage = null"
+        @drop.prevent="onDrop(column.stage)"
+      >
         <header class="column-head">
           <span class="column-title">
             <span class="stage-dot" :class="column.stage" aria-hidden="true" />
@@ -29,31 +36,38 @@
         </header>
 
         <div class="column-body">
-          <button
-            type="button"
+          <div
             v-for="app in column.applications"
             :key="app.id"
-            :class="['job-card', { overdue: isFollowUpOverdue(app, today) }]"
-            @click="openDetail(app)"
+            :class="['card-wrap', { dragging: draggingId === app.id }]"
+            draggable="true"
+            @dragstart="onDragStart(app.id, $event)"
+            @dragend="onDragEnd"
           >
-            <div class="job-top">
-              <span class="company">{{ app.company }}</span>
-              <span :class="['priority', app.priority.toLowerCase()]">{{ app.priority }}</span>
-            </div>
+            <button
+              type="button"
+              :class="['job-card', { overdue: isFollowUpOverdue(app, today) }]"
+              @click="openDetail(app)"
+            >
+              <div class="job-top">
+                <span class="company">{{ app.company }}</span>
+                <span :class="['priority', app.priority.toLowerCase()]">{{ app.priority }}</span>
+              </div>
 
-            <p class="role">{{ app.role }}</p>
+              <p class="role">{{ app.role }}</p>
 
-            <div v-if="app.city || app.salary" class="job-meta">
-              <span v-if="app.city">{{ app.city }}</span>
-              <span v-if="app.salary">{{ app.salary }}</span>
-            </div>
+              <div v-if="app.city || app.salary" class="job-meta">
+                <span v-if="app.city">{{ app.city }}</span>
+                <span v-if="app.salary">{{ app.salary }}</span>
+              </div>
 
-            <p v-if="app.nextAction" class="next">
-              <Calendar :size="11" aria-hidden="true" />
-              {{ app.nextAction.label }} · {{ app.nextAction.date }}
-            </p>
-            <p v-else class="next muted">暂无下一步</p>
-          </button>
+              <p v-if="app.nextAction" class="next">
+                <Calendar :size="11" aria-hidden="true" />
+                {{ app.nextAction.label }} · {{ app.nextAction.date }}
+              </p>
+              <p v-else class="next muted">暂无下一步</p>
+            </button>
+          </div>
 
           <p v-if="column.applications.length === 0" class="column-empty">暂无</p>
         </div>
@@ -135,6 +149,23 @@
           </ol>
 
           <p v-else class="muted-line">还没有记录</p>
+        </section>
+
+        <section class="block">
+          <h3 class="block-title">移动到阶段</h3>
+
+          <div class="stage-actions">
+            <button
+              v-for="stage in JOB_STAGES"
+              :key="stage.value"
+              type="button"
+              :class="['stage-btn', { active: selected.stage === stage.value }]"
+              :aria-pressed="selected.stage === stage.value"
+              @click="moveApplication(selected.id, stage.value)"
+            >
+              {{ stage.label }}
+            </button>
+          </div>
         </section>
       </template>
     </AppDrawer>
@@ -240,7 +271,7 @@ import AppDrawer from '@/components/ui/AppDrawer.vue'
 import Chip from '@/components/ui/Chip.vue'
 import type { JobStage, TimelineEvent, Priority } from '@/types'
 import Button from '@/components/ui/Button.vue'
-import { createApplication } from '@/stores/applications'
+import { createApplication, moveApplication } from '@/stores/applications'
 import { toast } from '@/lib/toast'
 import { normalizeHttpUrl, hostOf } from '@/lib/url'
 
@@ -279,8 +310,17 @@ const selected = computed(() => db.applications.find((app) => app.id === selecte
 
 const timeline = computed(() => {
   if (!selected.value) return []
-  // 时间线降序排列
-  return [...selected.value.timeline].sort((a, b) => b.date.localeCompare(a.date))
+
+  return selected.value.timeline
+    .map((event, index) => ({ event, index }))
+    .sort((a, b) => {
+      // 按时间降序排序
+      // 同一天按索引值降序排序
+      const byDate = b.event.date.localeCompare(a.event.date)
+      if (byDate !== 0) return byDate
+      return b.index - a.index
+    })
+    .map(({ event }) => event)
 })
 
 function openDetail(app: { id: string }) {
@@ -377,6 +417,33 @@ const channelHref = computed(() => {
   const raw = selected.value?.channelUrl
   return raw ? normalizeHttpUrl(raw) : null
 })
+
+const draggingId = ref<string | null>(null)
+const dragOverStage = ref<JobStage | null>(null)
+
+function onDragStart(id: string, event: DragEvent) {
+  draggingId.value = id
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', id)
+  }
+}
+
+function onDragEnd() {
+  draggingId.value = null
+  dragOverStage.value = null
+}
+
+function onDragOver(stage: JobStage) {
+  dragOverStage.value = stage
+}
+
+function onDrop(stage: JobStage) {
+  if (!draggingId.value) return
+  moveApplication(draggingId.value, stage)
+  draggingId.value = null
+  dragOverStage.value = null
+}
 </script>
 
 <style scoped>
@@ -746,5 +813,56 @@ h1 {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   color: var(--color-text-faint);
+}
+
+.card-wrap {
+  cursor: grab;
+}
+
+.card-wrap.dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.column.drop-target {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+  outline: 2px solid var(--color-accent-strong);
+  outline-offset: -1px;
+}
+
+.stage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.stage-btn {
+  height: 30px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.stage-btn:hover {
+  border-color: var(--color-accent-strong);
+  color: var(--color-text-strong);
+}
+
+.stage-btn.active {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-strong);
+  color: var(--color-tone-lime-fg);
+  font-weight: 600;
+}
+
+.stage-btn:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
 }
 </style>

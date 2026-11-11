@@ -1,8 +1,9 @@
-import type { Application, Priority } from '@/types'
+import type { Application, Priority, JobStage } from '@/types'
 import { createId } from '@/lib/id'
 import { localDate } from '@/lib/date'
 import { useDatabase } from './db'
 import { normalizeHttpUrl } from '@/lib/url'
+import { stageLabel } from '@/lib/jobs'
 
 export interface ApplicationInput {
   company: string
@@ -48,5 +49,26 @@ export function createApplication(input: ApplicationInput): Application | null {
   }
 
   useDatabase().applications.push(app)
+  return app
+}
+
+// 移动求职信息卡
+export function moveApplication(id: string, stage: JobStage): Application | null {
+  const db = useDatabase()
+  const app = db.applications.find((item) => item.id === id)
+  if (!app) return null
+  if (app.stage === stage) return null
+
+  const from = stageLabel(app.stage)
+
+  app.stage = stage
+  app.updatedAt = new Date().toISOString()
+  app.timeline.push({
+    id: createId(),
+    type: 'stage',
+    text: `阶段变更：${from} → ${stageLabel(stage)}`,
+    date: localDate(),
+  })
+
   return app
 }

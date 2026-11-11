@@ -59,3 +59,7 @@ export function groupApplications(apps: Application[]): StageColumn[] {
     applications: sortApplications(buckets[value]),
   }))
 }
+
+export function stageLabel(stage: JobStage): string {
+  return JOB_STAGES.find((item) => item.value === stage)?.label ?? stage
+}
