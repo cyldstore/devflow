@@ -17,12 +17,36 @@
       </div>
     </header>
 
+    <!-- 移动端tab -->
+    <div class="stage-tabs" role="group" aria-label="按阶段查看">
+      <button
+        v-for="stage in JOB_STAGES"
+        :key="stage.value"
+        type="button"
+        :class="[
+          'stage-tab',
+          { active: activeStage === stage.value, overdue: hasOverdue(stage.value) },
+        ]"
+        :aria-pressed="activeStage === stage.value"
+        @click="activeStage = stage.value"
+      >
+        {{ stage.label }}
+        <span class="tab-count">{{ countOf(stage.value) }}</span>
+      </button>
+    </div>
+
     <!-- 内容区 -->
     <div class="board">
       <section
         v-for="column in columns"
         :key="column.stage"
-        :class="['column', { 'drop-target': dragOverStage === column.stage }]"
+        :class="[
+          'column',
+          {
+            'drop-target': dragOverStage === column.stage,
+            'stage-hidden': activeStage !== column.stage,
+          },
+        ]"
         @dragover.prevent="onDragOver(column.stage)"
         @dragleave="dragOverStage = null"
         @drop.prevent="onDrop(column.stage)"
@@ -444,6 +468,19 @@ function onDrop(stage: JobStage) {
   draggingId.value = null
   dragOverStage.value = null
 }
+
+const activeStage = ref<JobStage>(
+  db.applications.find((app) => app.stage !== 'closed')?.stage ?? 'applied',
+)
+
+function countOf(stage: JobStage): number {
+  return columns.value.find((column) => column.stage === stage)?.applications.length ?? 0
+}
+
+function hasOverdue(stage: JobStage): boolean {
+  const column = columns.value.find((item) => item.stage === stage)
+  return column ? column.applications.some((app) => isFollowUpOverdue(app, today)) : false
+}
 </script>
 
 <style scoped>
@@ -864,5 +901,70 @@ h1 {
 .stage-btn:focus-visible {
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
+}
+
+.stage-tabs {
+  display: none;
+  gap: var(--space-1);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.stage-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 30px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.stage-tab.active {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-strong);
+  color: var(--color-tone-lime-fg);
+  font-weight: 600;
+}
+
+.stage-tab.overdue .tab-count {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.stage-tab:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
+}
+
+.tab-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+@media (max-width: 767px) {
+  .stage-tabs {
+    display: flex;
+  }
+
+  .board {
+    display: block;
+  }
+
+  .column {
+    margin-bottom: var(--space-4);
+  }
+
+  .stage-hidden {
+    display: none;
+  }
 }
 </style>
