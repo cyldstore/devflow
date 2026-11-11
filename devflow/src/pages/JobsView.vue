@@ -11,6 +11,7 @@
       </p>
     </header>
 
+    <!-- 内容区 -->
     <div class="board">
       <section v-for="column in columns" :key="column.stage" class="column">
         <header class="column-head">
@@ -22,10 +23,12 @@
         </header>
 
         <div class="column-body">
-          <article
+          <button
+            type="button"
             v-for="app in column.applications"
             :key="app.id"
             :class="['job-card', { overdue: isFollowUpOverdue(app, today) }]"
+            @click="openDetail(app)"
           >
             <div class="job-top">
               <span class="company">{{ app.company }}</span>
@@ -44,21 +47,91 @@
               {{ app.nextAction.label }} · {{ app.nextAction.date }}
             </p>
             <p v-else class="next muted">暂无下一步</p>
-          </article>
+          </button>
 
           <p v-if="column.applications.length === 0" class="column-empty">暂无</p>
         </div>
       </section>
     </div>
+
+    <!-- 详情抽屉 -->
+    <AppDrawer
+      v-model:open="detailOpen"
+      :title="selected?.company ?? ''"
+      :description="selected?.role"
+    >
+      <template v-if="selected">
+        <div class="detail-chips">
+          <Chip :tone="STAGE_TONES[selected.stage]">
+            {{ STAGE_LABELS[selected.stage] }}
+          </Chip>
+          <span :class="['priority', selected.priority.toLowerCase()]">{{
+            selected.priority
+          }}</span>
+        </div>
+
+        <dl class="facts">
+          <div v-if="selected.city" class="fact">
+            <dt>城市</dt>
+            <dd>{{ selected.city }}</dd>
+          </div>
+          <div v-if="selected.salary" class="fact">
+            <dt>薪资</dt>
+            <dd>{{ selected.salary }}</dd>
+          </div>
+          <div v-if="selected.channel" class="fact">
+            <dt>渠道</dt>
+            <dd>{{ selected.channel }}</dd>
+          </div>
+          <div v-if="selected.appliedAt" class="fact">
+            <dt>投递日期</dt>
+            <dd>{{ selected.appliedAt }}</dd>
+          </div>
+        </dl>
+
+        <section class="block">
+          <h3 class="block-title">下一步</h3>
+          <p
+            v-if="selected.nextAction"
+            :class="['next-line', { overdue: isFollowUpOverdue(selected, today) }]"
+          >
+            {{ selected.nextAction.label }} · {{ selected.nextAction.date }}
+          </p>
+          <p v-else class="muted-line">还没有安排下一步</p>
+        </section>
+
+        <section v-if="selected.note" class="block">
+          <h3 class="block-title">备注</h3>
+          <p class="note-text">{{ selected.note }}</p>
+        </section>
+
+        <section class="block">
+          <h3 class="block-title">时间线</h3>
+
+          <ol v-if="timeline.length > 0" class="timeline">
+            <li v-for="event in timeline" :key="event.id" :class="['event', event.type]">
+              <span class="event-dot" aria-hidden="true" />
+              <p class="event-text">{{ event.text }}</p>
+              <p class="event-meta">{{ EVENT_LABELS[event.type] }} · {{ event.date }}</p>
+            </li>
+          </ol>
+
+          <p v-else class="muted-line">还没有记录</p>
+        </section>
+      </template>
+    </AppDrawer>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { Calendar } from 'lucide-vue-next'
-import { groupApplications, isFollowUpOverdue } from '@/lib/jobs'
+import { groupApplications, isFollowUpOverdue, JOB_STAGES } from '@/lib/jobs'
 import { localDate } from '@/lib/date'
 import { useDatabase } from '@/stores/db'
+import AppDrawer from '@/components/ui/AppDrawer.vue'
+import Chip from '@/components/ui/Chip.vue'
+import type { JobStage, TimelineEvent } from '@/types'
 
 const db = useDatabase()
 const today = localDate()
@@ -68,6 +141,45 @@ const activeCount = computed(() => db.applications.filter((app) => app.stage !==
 const overdueCount = computed(
   () => db.applications.filter((app) => isFollowUpOverdue(app, today)).length,
 )
+
+const STAGE_LABELS = Object.fromEntries(
+  JOB_STAGES.map((stage) => [stage.value, stage.label]),
+) as Record<JobStage, string>
+
+const STAGE_TONES = {
+  saved: 'neutral',
+  applied: 'blue',
+  interview: 'amber',
+  offer: 'lime',
+  closed: 'stone',
+} as const
+
+const EVENT_LABELS: Record<TimelineEvent['type'], string> = {
+  stage: '阶段变更',
+  interview: '面试',
+  followup: '跟进',
+  note: '备注',
+}
+
+const detailOpen = ref(false)
+const selectedId = ref<string | null>(null)
+
+const selected = computed(() => db.applications.find((app) => app.id === selectedId.value) ?? null)
+
+const timeline = computed(() => {
+  if (!selected.value) return []
+  // 时间线降序排列
+  return [...selected.value.timeline].sort((a, b) => b.date.localeCompare(a.date))
+})
+
+function openDetail(app: { id: string }) {
+  selectedId.value = app.id
+  detailOpen.value = true
+}
+
+watch(detailOpen, (open) => {
+  if (!open) selectedId.value = null
+})
 </script>
 
 <style scoped>
@@ -170,6 +282,7 @@ h1 {
 }
 
 .job-card {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -178,11 +291,19 @@ h1 {
   border-radius: var(--radius-md);
   background: var(--color-surface);
   box-shadow: var(--shadow-card);
-  transition: border-color 140ms ease;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .job-card.overdue {
   border-color: var(--color-danger);
+}
+
+.job-card:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
 }
 
 .job-card:hover {
@@ -266,6 +387,148 @@ h1 {
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.detail-chips {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin: 0 0 var(--space-6);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fact dt {
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.block {
+  margin-bottom: var(--space-6);
+}
+
+.block-title {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+.next-line {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.next-line.overdue {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.muted-line {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+}
+
+.note-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
+}
+
+.timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event {
+  position: relative;
+  padding: 0 0 var(--space-5) var(--space-6);
+}
+
+.event::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-circle);
+  background: var(--color-text-faint);
+}
+
+.event::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 15px;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.event:last-child {
+  padding-bottom: 0;
+}
+
+.event:last-child::after {
+  display: none;
+}
+
+.event.stage::before {
+  background: var(--color-accent-strong);
+}
+
+.event.interview::before {
+  background: var(--color-tone-amber-fg);
+}
+
+.event.followup::before {
+  background: var(--color-tone-blue-fg);
+}
+
+.event.note::before {
+  background: var(--color-text-faint);
+}
+
+.event-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.event-meta {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
   color: var(--color-text-faint);
 }
 </style>
