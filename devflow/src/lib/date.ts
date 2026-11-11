@@ -12,3 +12,10 @@ export function localDate(offsetDays = 0): string {
   d.setDate(d.getDate() + offsetDays)
   return formatDate(d)
 }
+
+export function addDays(date: string, delta: number): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const dt = new Date(y, m - 1, d)
+  dt.setDate(dt.getDate() + delta)
+  return formatDate(dt)
+}
