@@ -67,6 +67,44 @@
         <p v-else class="chart-empty">还没有投递记录</p>
       </Card>
     </div>
+
+    <Card class="topic-card">
+      <header class="chart-head">
+        <h2>主题掌握度</h2>
+        <span>薄弱优先</span>
+      </header>
+
+      <p v-if="summary.topics.length === 0" class="chart-empty">还没有标记掌握度的条目</p>
+
+      <ul v-else class="topic-list">
+        <li v-for="topic in summary.topics" :key="topic.topic" class="topic-row">
+          <div class="topic-head">
+            <span class="topic-name">{{ topic.topic }}</span>
+            <span class="topic-count">{{ topic.total }} 条</span>
+          </div>
+
+          <div class="topic-bar" aria-hidden="true">
+            <span
+              :class="['topic-fill', masteryTone(topic.score)]"
+              :style="{ width: `${(topic.score / 2) * 100}%` }"
+            />
+          </div>
+
+          <div class="topic-meta">
+            <span>生疏 {{ topic.rusty }}</span>
+            <span>学习中 {{ topic.learning }}</span>
+            <span>熟练 {{ topic.solid }}</span>
+
+            <RouterLink
+              class="topic-link"
+              :to="{ path: '/knowledge', query: { topic: topic.topic } }"
+            >
+              查看 →
+            </RouterLink>
+          </div>
+        </li>
+      </ul>
+    </Card>
   </section>
 </template>
 
@@ -225,6 +263,12 @@ const stageOption = computed<EChartsOption>(() => {
     ],
   }
 })
+
+function masteryTone(score: number): string {
+  if (score < 0.75) return 'weak'
+  if (score < 1.5) return 'mid'
+  return 'strong'
+}
 </script>
 
 <style scoped>
@@ -387,5 +431,88 @@ h1 {
   text-align: center;
   font-size: var(--text-sm);
   color: var(--color-text-faint);
+}
+
+.topic-card {
+  padding: var(--space-5);
+}
+
+.topic-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.topic-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.topic-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.topic-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.topic-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+.topic-bar {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-background);
+  overflow: hidden;
+}
+
+.topic-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 240ms ease;
+}
+
+.topic-fill.weak {
+  background: var(--color-danger);
+}
+
+.topic-fill.mid {
+  background: var(--color-tone-amber-fg);
+}
+
+.topic-fill.strong {
+  background: var(--color-accent-strong);
+}
+
+.topic-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+
+.topic-link {
+  margin-left: auto;
+  color: var(--color-tone-lime-fg);
+  font-weight: 600;
+}
+
+.topic-link:hover {
+  text-decoration: underline;
 }
 </style>

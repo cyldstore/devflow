@@ -14,6 +14,7 @@ export interface KnowledgeQuery {
   keyword?: string
   mastery?: MasteryFilter
   tags?: string[]
+  topic?: string
 }
 
 // 筛选知识库
@@ -26,6 +27,7 @@ export function filterKnowledge(items: KnowledgeItem[], query: KnowledgeQuery): 
   return items.filter((item) => {
     if (type !== 'all' && item.type !== type) return false
     if (mastery !== 'all' && item.mastery !== mastery) return false
+    if (query.topic && item.topic !== query.topic) return false
 
     if (tags.length > 0) {
       const itemTags = item.tags.map((tag) => tag.toLowerCase())

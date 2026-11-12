@@ -34,6 +34,18 @@
           </button>
         </div>
 
+        <div v-if="topicFilter" class="active-topic">
+          <span>主题：{{ topicFilter }}</span>
+          <button
+            type="button"
+            class="active-topic-clear"
+            aria-label="清除主题筛选"
+            @click="clearTopic"
+          >
+            <X :size="12" aria-hidden="true" />
+          </button>
+        </div>
+
         <div class="tabs" role="group" aria-label="按类型筛选">
           <button
             v-for="tab in TABS"
@@ -292,6 +304,7 @@ import {
   toggleKnowledgePin,
 } from '@/stores/knowledge'
 import { toast } from '@/lib/toast'
+import { useRoute, useRouter } from 'vue-router'
 
 const TABS: { value: KnowledgeFilter; label: string }[] = [
   { value: 'all', label: '全部' },
@@ -585,6 +598,7 @@ const items = computed(() =>
       keyword: keyword.value,
       mastery: masteryFilter.value,
       tags: [...activeTags.value],
+      topic: topicFilter.value ?? undefined,
     }),
   ),
 )
@@ -595,6 +609,7 @@ function clearFilters() {
   keyword.value = ''
   masteryFilter.value = 'all'
   activeTags.value = []
+  clearTopic()
 }
 
 const activeTags = ref<string[]>([])
@@ -639,6 +654,25 @@ onBeforeUnmount(() => {
   clearSaveTimer()
   if (dirty && canSave.value) persistDraft()
 })
+
+const route = useRoute()
+const router = useRouter()
+
+const topicFilter = ref<string | null>(
+  typeof route.query.topic === 'string' ? route.query.topic : null,
+)
+
+watch(
+  () => route.query.topic,
+  (value) => {
+    topicFilter.value = typeof value === 'string' ? value : null
+  },
+)
+
+function clearTopic() {
+  topicFilter.value = null
+  router.replace({ query: {} })
+}
 </script>
 
 <style scoped>
@@ -1156,5 +1190,35 @@ input[type='search']::-webkit-search-cancel-button {
 .tag-chip:focus-visible {
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
+}
+
+.active-topic {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+  height: 26px;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border: 1px solid var(--color-accent-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-tone-lime-fg);
+  font-size: var(--text-xs);
+}
+
+.active-topic-clear {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-circle);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.active-topic-clear:hover {
+  background: rgb(23 26 22 / 0.08);
 }
 </style>
