@@ -217,22 +217,7 @@ import { addTask, toggleTask, removeTask, restoreTask, updateTask } from '@/stor
 import { toast } from '@/lib/toast'
 import AppDrawer from '@/components/ui/AppDrawer.vue'
 import { useRouter } from 'vue-router'
-
-// 类别标签名称
-const CATEGORY_LABELS: Record<TaskCategory, string> = {
-  learning: '学习',
-  job: '求职',
-  project: '项目',
-  life: '生活',
-}
-
-// 类别标签样式
-const CATEGORY_TONES = {
-  learning: 'sage',
-  job: 'blue',
-  project: 'wood',
-  life: 'stone',
-} as const
+import { CATEGORY_LABELS, CATEGORY_TONES } from '@/lib/task-meta'
 
 const db = useDatabase()
 const today = localDate()

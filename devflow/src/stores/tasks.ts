@@ -78,3 +78,14 @@ export function updateTask(id: string, patch: Partial<TaskEditable>): Task | nul
 
   return task
 }
+
+// 日期更新
+export function rescheduleTask(id: string, date: string): Task | null {
+  const db = useDatabase()
+  const task = db.tasks.find((item) => item.id === id)
+  if (!task) return null
+
+  task.date = date
+  task.updatedAt = new Date().toISOString()
+  return task
+}

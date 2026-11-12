@@ -1,103 +1,419 @@
 <template>
-  <PagePlaceholder
-    index="01"
-    title="概览"
-    description="今日聚焦、本周学习目标与求职下一步会在这里汇总。"
-  />
-
-  <!-- 临时：验证 Card 组件，C4 实现概览页时删除 -->
-  <Card class="demo-card">
-    <div class="demo-body">
-      <h2 class="demo-title">卡片标题</h2>
-      <p class="demo-text">
-        这是一段用来验证卡片内边距和文字排版的占位内容，长度足够换行，可以看到行高。
-      </p>
-
-      <div class="demo-chips">
-        <Chip tone="sage" dot>学习</Chip>
-        <Chip tone="blue" dot>求职</Chip>
-        <Chip tone="wood">项目</Chip>
-        <Chip tone="stone">生活</Chip>
-        <Chip tone="coral">逾期</Chip>
-        <Chip tone="amber">进行中</Chip>
-        <Chip tone="lime">已完成</Chip>
-        <Chip>待定</Chip>
+  <section class="overview">
+    <header class="ov-head">
+      <div>
+        <p class="eyebrow">{{ dateLabel }}</p>
+        <h1>{{ greeting }}，{{ displayName }}。</h1>
+        <p class="lede">
+          今天有 {{ openToday }} 件待办<template v-if="overdueTasks.length > 0">
+            ，{{ overdueTasks.length }} 件已逾期</template
+          >。
+        </p>
       </div>
 
-      <AppDialog
-        v-model:open="demoOpen"
-        title="示例对话框"
-        description="Reka UI 只提供行为，外观全部由我们决定。"
-      >
-        <template #trigger>
-          <Button variant="ghost">打开对话框</Button>
-        </template>
-        <p>按 Esc 关闭；Tab 会在对话框内循环；关闭后焦点回到触发按钮。</p>
+      <div class="ov-actions">
+        <Button variant="ghost" @click="goLog">记录学习</Button>
+        <Button variant="lime" @click="goTasks">新建任务</Button>
+      </div>
+    </header>
 
-        <template #footer>
-          <Button variant="ghost" @click="demoOpen = false">取消</Button>
-          <Button variant="lime" @click="demoOpen = false">知道了</Button>
-        </template>
-      </AppDialog>
+    <Card v-if="overdueTasks.length > 0" class="overdue-card">
+      <header class="block-head">
+        <h2 class="block-title">逾期 {{ overdueTasks.length }} 项</h2>
+      </header>
 
-      <AppDrawer
-        v-model:open="drawerOpen"
-        title="任务详情"
-        description="抽屉用于编辑，不会打断当前上下文。"
-      >
-        <template #trigger>
-          <Button variant="ghost">打开抽屉</Button>
-        </template>
-        <p>这里是抽屉的内容区，内容多的时候只有这块会滚动。</p>
+      <ul class="overdue-list">
+        <li v-for="task in overdueTasks" :key="task.id" class="overdue-row">
+          <span class="overdue-title">{{ task.title }}</span>
+          <time class="overdue-date" :datetime="task.date">{{ task.date }}</time>
+          <button type="button" class="overdue-move" @click="moveToToday(task)">移到今天</button>
+        </li>
+      </ul>
+    </Card>
 
-        <template #footer>
-          <Button variant="ghost" @click="drawerOpen = false">取消</Button>
-          <Button variant="lime" @click="drawerOpen = false">保存</Button>
-        </template>
-      </AppDrawer>
-    </div>
-  </Card>
+    <Card class="focus-card">
+      <header class="block-head">
+        <div>
+          <h2 class="block-title">今日聚焦</h2>
+        </div>
+        <span class="focus-count">{{ doneToday }} / {{ todayTasks.length }}</span>
+      </header>
+
+      <div v-if="todayTasks.length === 0" class="focus-empty">
+        <p>今天还没有安排任务。</p>
+        <Button variant="ghost" @click="goTasks">去任务页添加</Button>
+      </div>
+
+      <ul v-else class="focus-list">
+        <li v-for="task in focusTasks" :key="task.id" :class="['focus-row', { done: task.done }]">
+          <label class="check-wrap">
+            <input
+              class="check-input"
+              type="checkbox"
+              :checked="task.done"
+              :aria-label="task.done ? `取消完成：${task.title}` : `完成：${task.title}`"
+              @change="handleToggle(task)"
+            />
+            <span class="check" aria-hidden="true">
+              <Check v-if="task.done" :size="12" :stroke-width="2.6" />
+            </span>
+          </label>
+
+          <div class="copy">
+            <p class="title">{{ task.title }}</p>
+            <div class="meta">
+              <Chip :tone="CATEGORY_TONES[task.category]">
+                {{ CATEGORY_LABELS[task.category] }}
+              </Chip>
+              <span v-if="task.estimateMin" class="meta-item">{{ task.estimateMin }} 分钟</span>
+            </div>
+          </div>
+
+          <span :class="['priority', task.priority.toLowerCase()]">{{ task.priority }}</span>
+        </li>
+      </ul>
+    </Card>
+  </section>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { Check } from 'lucide-vue-next'
+import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Chip from '@/components/ui/Chip.vue'
-import PagePlaceholder from '@/components/ui/PagePlaceholder.vue'
-import AppDialog from '@/components/ui/AppDialog.vue'
-import Button from '@/components/ui/Button.vue'
-import AppDrawer from '@/components/ui/AppDrawer.vue'
-import { ref } from 'vue'
+import { localDate } from '@/lib/date'
+import { sortTasks } from '@/lib/tasks'
+import { CATEGORY_LABELS, CATEGORY_TONES } from '@/lib/task-meta'
+import { useDatabase } from '@/stores/db'
+import { rescheduleTask, toggleTask } from '@/stores/tasks'
+import { toast } from '@/lib/toast'
+import type { Task } from '@/types'
 
-const demoOpen = ref(false)
-const drawerOpen = ref(false)
+const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+
+const router = useRouter()
+const db = useDatabase()
+const today = localDate()
+
+const dateLabel = computed(() => {
+  const now = new Date()
+  return `${now.getFullYear()} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日 · ${WEEKDAYS[now.getDay()]}`
+})
+
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 6) return '凌晨好'
+  if (hour < 9) return '早上好'
+  if (hour < 12) return '上午好'
+  if (hour < 14) return '中午好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
+})
+
+const displayName = computed(() => db.profile.name || '朋友')
+
+const todayTasks = computed(() => db.tasks.filter((task) => task.date === today))
+const openToday = computed(() => todayTasks.value.filter((task) => !task.done).length)
+const doneToday = computed(() => todayTasks.value.filter((task) => task.done).length)
+
+const focusTasks = computed(() =>
+  sortTasks(todayTasks.value).sort((a, b) => Number(a.done) - Number(b.done)),
+)
+
+const overdueTasks = computed(() =>
+  sortTasks(db.tasks.filter((task) => !task.done && task.date < today)),
+)
+
+function handleToggle(task: Task) {
+  const willBeDone = !task.done
+  toggleTask(task.id)
+
+  if (willBeDone) {
+    toast.add({
+      title: '已完成',
+      description: task.title,
+      status: 'success',
+      duration: 8000,
+      actionProps: {
+        label: '撤销',
+        altText: '撤销完成',
+        onClick: () => toggleTask(task.id),
+      },
+      data: {
+        secondaryAction: {
+          label: '记录学习',
+          onClick: () => router.push({ path: '/insights', query: { log: '1' } }),
+        },
+      },
+    })
+  }
+}
+
+function moveToToday(task: Task) {
+  rescheduleTask(task.id, today)
+  toast.add({
+    title: '已移到今天',
+    description: task.title,
+    status: 'success',
+    duration: 3000,
+  })
+}
+
+function goLog() {
+  router.push({ path: '/insights', query: { log: '1' } })
+}
+
+function goTasks() {
+  router.push('/tasks')
+}
 </script>
 
 <style scoped>
-.demo-card {
-  margin-top: var(--space-7);
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
 }
 
-.demo-body {
-  padding: var(--space-7);
+.ov-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-6);
 }
 
-.demo-title {
+.eyebrow {
   margin: 0 0 var(--space-2);
-  font-size: var(--text-lg);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.12em;
+  color: var(--color-text-faint);
+}
+
+h1 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-2xl);
+  letter-spacing: -0.03em;
   color: var(--color-text-strong);
 }
 
-.demo-text {
+.lede {
   margin: 0;
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
 }
 
-.demo-chips {
+.ov-actions {
   display: flex;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.block-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+
+.block-title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 650;
+  color: var(--color-text-strong);
+}
+
+.focus-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.overdue-card {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.overdue-card .block-title {
+  color: var(--color-danger);
+}
+
+.overdue-list {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-3);
+  list-style: none;
+}
+
+.overdue-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+}
+
+.overdue-row + .overdue-row {
+  border-top: 1px solid rgb(232 93 58 / 0.2);
+}
+
+.overdue-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overdue-date {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-danger);
+}
+
+.overdue-move {
+  flex: none;
+  height: 24px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-danger);
+  font: inherit;
+  font-size: var(--text-2xs);
+  cursor: pointer;
+}
+
+.overdue-move:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.overdue-move:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
+}
+
+.focus-list {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-3);
+  list-style: none;
+}
+
+.focus-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+}
+
+.focus-row + .focus-row {
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+}
+
+.focus-row:hover {
+  background: var(--color-background);
+}
+
+.focus-row.done .title {
+  color: var(--color-text-faint);
+  text-decoration: line-through;
+}
+
+.check-wrap {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  margin-top: 2px;
+}
+
+.check-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.check {
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  background: var(--color-background);
+  color: var(--color-accent-contrast);
+}
+
+.check-input:focus-visible + .check {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
+}
+
+.focus-row.done .check {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-base);
+  color: var(--color-text);
+}
+
+.meta {
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+}
+
+.priority {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+}
+
+.priority.p0 {
+  color: var(--color-tone-coral-fg);
+}
+
+.priority.p1 {
+  color: var(--color-tone-amber-fg);
+}
+
+.priority.p2 {
+  color: var(--color-text-faint);
+}
+
+.focus-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5) var(--space-8);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.focus-empty p {
+  margin: 0;
 }
 </style>
