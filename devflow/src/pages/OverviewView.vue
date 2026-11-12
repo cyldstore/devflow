@@ -106,7 +106,10 @@
               <h2 class="block-title">本周学习</h2>
               <p class="block-sub">目标 {{ goalHours }} 小时</p>
             </div>
-            <span class="goal-percent">{{ goalPercent }}%</span>
+            <div class="goal-meta">
+              <span class="goal-percent">{{ goalPercent }}%</span>
+              <button type="button" class="goal-edit" @click="openSettings">编辑</button>
+            </div>
           </header>
 
           <p class="goal-value">
@@ -188,6 +191,7 @@ import { formatMinutes } from '@/lib/format'
 import { studyBarOption } from '@/lib/chart-options'
 import BaseChart from '@/components/ui/BaseChart.vue'
 import { isFollowUpOverdue } from '@/lib/jobs'
+import { openSettings } from '@/stores/ui'
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
@@ -705,6 +709,30 @@ h1 {
 }
 
 .side-row:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
+}
+.goal-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.goal-edit {
+  border: none;
+  background: transparent;
+  color: var(--color-text-faint);
+  font: inherit;
+  font-size: var(--text-2xs);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.goal-edit:hover {
+  color: var(--color-text-strong);
+}
+
+.goal-edit:focus-visible {
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
 }

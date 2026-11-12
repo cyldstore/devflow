@@ -9,6 +9,7 @@
     </div>
     <BottomNav />
     <ToastHost />
+    <SettingsDialog />
   </div>
 </template>
 
@@ -17,6 +18,7 @@ import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 import BottomNav from './BottomNav.vue'
 import ToastHost from '@/components/ui/ToastHost.vue'
+import SettingsDialog from './SettingsDialog.vue'
 </script>
 
 <style scoped>

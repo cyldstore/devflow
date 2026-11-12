@@ -13,7 +13,7 @@
     />
 
     <div class="actions">
-      <Button variant="ghost" aria-label="切换主题">主题</Button>
+      <Button variant="ghost" @click="openSettings">设置</Button>
       <Button variant="lime">
         <Plus :size="14" aria-hidden="true" />
         快速新建
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { Plus } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
+import { openSettings } from '@/stores/ui'
 </script>
 
 <style scoped>
