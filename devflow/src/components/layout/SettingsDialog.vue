@@ -148,4 +148,9 @@ watch(settingsOpen, (isOpen) => {
   line-height: var(--leading-normal);
   color: var(--color-text-muted);
 }
+
+.toggle-input:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
+}
 </style>

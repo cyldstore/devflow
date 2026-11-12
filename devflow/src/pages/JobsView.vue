@@ -1123,7 +1123,7 @@ h1 {
 }
 
 /* 大于1320采用列布局 */
-@media (min-width: 1000px) {
+@media (min-width: 1320px) {
   .jobs {
     height: 100%;
     min-height: 0;
