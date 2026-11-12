@@ -147,13 +147,41 @@
 
         <section class="block">
           <h3 class="block-title">下一步</h3>
-          <p
-            v-if="selected.nextAction"
-            :class="['next-line', { overdue: isFollowUpOverdue(selected, today) }]"
-          >
-            {{ selected.nextAction.label }} · {{ selected.nextAction.date }}
-          </p>
-          <p v-else class="muted-line">还没有安排下一步</p>
+
+          <template v-if="selected.nextAction">
+            <div class="next-row">
+              <span :class="['next-line', { overdue: isFollowUpOverdue(selected, today) }]">
+                {{ selected.nextAction.label }} · {{ selected.nextAction.date }}
+              </span>
+              <Button variant="ghost" size="sm" @click="completeNextAction(selected.id)">
+                完成
+              </Button>
+            </div>
+            <p class="next-hint">完成后写入时间线，并清除这条待办。</p>
+          </template>
+
+          <form v-else class="next-form" @submit.prevent="saveNextAction(selected.id)">
+            <input
+              v-model="nextDraft.label"
+              class="input"
+              type="text"
+              list="next-action-options"
+              placeholder="下一步做什么"
+            />
+            <input v-model="nextDraft.date" class="input" type="date" />
+            <Button
+              variant="ghost"
+              size="sm"
+              type="submit"
+              :disabled="nextDraft.label.trim() === '' || nextDraft.date === ''"
+            >
+              设置
+            </Button>
+          </form>
+
+          <datalist id="next-action-options">
+            <option v-for="option in nextActionOptions" :key="option" :value="option" />
+          </datalist>
         </section>
 
         <section v-if="selected.note" class="block">
@@ -258,7 +286,13 @@
               class="input"
               type="text"
               placeholder="如 投递简历 / 等回复"
+              list="new-next-actions"
             />
+            <datalist id="new-next-actions">
+              <option value="投递简历" />
+              <option value="完善简历" />
+              <option value="了解公司" />
+            </datalist>
           </label>
 
           <label class="field">
@@ -295,7 +329,12 @@ import AppDrawer from '@/components/ui/AppDrawer.vue'
 import Chip from '@/components/ui/Chip.vue'
 import type { JobStage, TimelineEvent, Priority } from '@/types'
 import Button from '@/components/ui/Button.vue'
-import { createApplication, moveApplication } from '@/stores/applications'
+import {
+  completeNextAction,
+  setNextAction,
+  createApplication,
+  moveApplication,
+} from '@/stores/applications'
 import { toast } from '@/lib/toast'
 import { normalizeHttpUrl, hostOf } from '@/lib/url'
 import { useRoute, useRouter } from 'vue-router'
@@ -500,6 +539,31 @@ watch(
   },
   { immediate: true },
 )
+
+const NEXT_ACTIONS: Record<JobStage, string[]> = {
+  saved: ['投递简历', '完善简历', '了解公司'],
+  applied: ['跟进 HR', '等待回复', '准备笔试'],
+  interview: ['准备面试', '参加面试', '复盘面试'],
+  offer: ['确认 Offer', '比较机会'],
+  closed: [],
+}
+
+const nextDraft = reactive({ label: '', date: '' })
+
+const nextActionOptions = computed(() => (selected.value ? NEXT_ACTIONS[selected.value.stage] : []))
+
+function saveNextAction(id: string) {
+  if (!nextDraft.label.trim() || !nextDraft.date) return
+
+  setNextAction(id, { label: nextDraft.label.trim(), date: nextDraft.date })
+  nextDraft.label = ''
+  nextDraft.date = ''
+}
+
+watch(selectedId, () => {
+  nextDraft.label = ''
+  nextDraft.date = ''
+})
 </script>
 
 <style scoped>
@@ -985,5 +1049,30 @@ h1 {
   .stage-hidden {
     display: none;
   }
+}
+
+.next-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.next-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.next-form .input {
+  height: 32px;
+  font-size: var(--text-sm);
+}
+
+.next-hint {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
 }
 </style>
