@@ -673,6 +673,21 @@ function clearTopic() {
   topicFilter.value = null
   router.replace({ query: {} })
 }
+
+watch(
+  () => route.query.item,
+  (id) => {
+    if (typeof id !== 'string') return
+
+    const item = db.knowledge.find((entry) => entry.id === id)
+    if (!item) return
+
+    selectedId.value = item.id
+    filter.value = 'all'
+    router.replace({ query: { ...route.query, item: undefined } })
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>

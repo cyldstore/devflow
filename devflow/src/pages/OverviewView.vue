@@ -99,6 +99,7 @@
       </div>
 
       <aside class="ov-side">
+        <!-- 目标卡片 -->
         <Card class="goal-card">
           <header class="side-head">
             <div>
@@ -123,6 +124,46 @@
             <template v-if="streak > 0"> · 连续 {{ streak }} 天</template>
           </p>
         </Card>
+
+        <!-- 求职预览卡片 -->
+        <Card class="side-card">
+          <header class="side-head">
+            <h2 class="block-title">接下来</h2>
+            <RouterLink class="side-link" to="/jobs">全部 →</RouterLink>
+          </header>
+
+          <p v-if="upcoming.length === 0" class="side-empty">暂时没有待跟进的事项</p>
+
+          <ul v-else class="side-list">
+            <li v-for="app in upcoming" :key="app.id">
+              <RouterLink class="side-row" :to="{ path: '/jobs', query: { app: app.id } }">
+                <span class="side-title">{{ app.company }} · {{ app.role }}</span>
+                <span :class="['side-sub', { overdue: isFollowUpOverdue(app, today) }]">
+                  {{ app.nextAction?.label }} · {{ app.nextAction?.date }}
+                </span>
+              </RouterLink>
+            </li>
+          </ul>
+        </Card>
+
+        <!-- 知识库预览卡片 -->
+        <Card class="side-card">
+          <header class="side-head">
+            <h2 class="block-title">最近知识</h2>
+            <RouterLink class="side-link" to="/knowledge">知识库 →</RouterLink>
+          </header>
+
+          <p v-if="recentKnowledge.length === 0" class="side-empty">还没有知识条目</p>
+
+          <ul v-else class="side-list">
+            <li v-for="item in recentKnowledge" :key="item.id">
+              <RouterLink class="side-row" :to="{ path: '/knowledge', query: { item: item.id } }">
+                <span class="side-title">{{ item.title }}</span>
+                <span class="side-sub">{{ item.topic }} · {{ item.updatedAt.slice(0, 10) }}</span>
+              </RouterLink>
+            </li>
+          </ul>
+        </Card>
       </aside>
     </div>
   </section>
@@ -146,6 +187,7 @@ import { minutesInRange, studyStreak, summarize } from '@/lib/insights'
 import { formatMinutes } from '@/lib/format'
 import { studyBarOption } from '@/lib/chart-options'
 import BaseChart from '@/components/ui/BaseChart.vue'
+import { isFollowUpOverdue } from '@/lib/jobs'
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
@@ -246,6 +288,17 @@ const studyOption = computed(() =>
     week7.value.studySeries.map((point) => point.date.slice(5)),
     week7.value.studySeries.map((point) => point.minutes),
   ),
+)
+
+const upcoming = computed(() =>
+  db.applications
+    .filter((app) => app.nextAction && app.stage !== 'closed')
+    .sort((a, b) => (a.nextAction?.date ?? '').localeCompare(b.nextAction?.date ?? ''))
+    .slice(0, 4),
+)
+
+const recentKnowledge = computed(() =>
+  [...db.knowledge].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3),
 )
 </script>
 
@@ -577,5 +630,82 @@ h1 {
   .ov-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.side-card {
+  padding: var(--space-5);
+}
+
+.side-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.side-link {
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+.side-link:hover {
+  color: var(--color-text-strong);
+}
+
+.side-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.side-list li:first-child .side-row {
+  border-top: none;
+  padding-top: 0;
+}
+
+.side-row:hover .side-title {
+  color: var(--color-tone-lime-fg);
+}
+
+.side-title {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-sub {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+.side-sub.overdue {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.side-empty {
+  margin: 0;
+  padding: var(--space-3) 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+}
+
+.side-row:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
 }
 </style>

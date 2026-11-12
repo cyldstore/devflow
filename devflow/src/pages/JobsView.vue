@@ -298,6 +298,7 @@ import Button from '@/components/ui/Button.vue'
 import { createApplication, moveApplication } from '@/stores/applications'
 import { toast } from '@/lib/toast'
 import { normalizeHttpUrl, hostOf } from '@/lib/url'
+import { useRoute, useRouter } from 'vue-router'
 
 const db = useDatabase()
 const today = localDate()
@@ -481,6 +482,24 @@ function hasOverdue(stage: JobStage): boolean {
   const column = columns.value.find((item) => item.stage === stage)
   return column ? column.applications.some((app) => isFollowUpOverdue(app, today)) : false
 }
+
+const route = useRoute()
+const router = useRouter()
+
+watch(
+  () => route.query.app,
+  (id) => {
+    if (typeof id !== 'string') return
+
+    const app = db.applications.find((item) => item.id === id)
+    if (!app) return
+
+    selectedId.value = app.id
+    detailOpen.value = true
+    router.replace({ query: { ...route.query, app: undefined } })
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>
