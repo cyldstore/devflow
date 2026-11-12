@@ -17,6 +17,18 @@
       </div>
     </header>
 
+    <div v-if="showBackupReminder" class="backup-banner">
+      <div class="backup-copy">
+        <p class="backup-title">建议备份本地数据</p>
+        <p class="backup-text">{{ backupMessage }}</p>
+      </div>
+
+      <div class="backup-actions">
+        <Button variant="ghost" @click="snoozeReminder()">稍后提醒</Button>
+        <Button variant="lime" @click="exportData">导出备份</Button>
+      </div>
+    </div>
+
     <div class="ov-grid">
       <div class="ov-main">
         <!-- 逾期卡片 -->
@@ -192,6 +204,8 @@ import { studyBarOption } from '@/lib/chart-options'
 import BaseChart from '@/components/ui/BaseChart.vue'
 import { isFollowUpOverdue } from '@/lib/jobs'
 import { openSettings } from '@/stores/ui'
+import { useBackupMeta, snoozeReminder } from '@/stores/backup'
+import { useBackupExport } from '@/composables/useBackupExport'
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
@@ -304,6 +318,30 @@ const upcoming = computed(() =>
 const recentKnowledge = computed(() =>
   [...db.knowledge].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3),
 )
+
+const backup = useBackupMeta()
+const { exportData } = useBackupExport()
+
+const hasAnyData = computed(
+  () => db.tasks.length + db.knowledge.length + db.applications.length + db.studyLogs.length > 0,
+)
+
+const showBackupReminder = computed(() => {
+  if (!backup.reminderEnabled.value) return false
+  if (backup.isSnoozed.value) return false
+  if (!hasAnyData.value) return false
+
+  if (!backup.lastExportedAt.value) return true
+  return (backup.daysSinceExport.value ?? 0) >= 7
+})
+
+const backupMessage = computed(() => {
+  const days = backup.daysSinceExport.value
+  if (days === null) {
+    return '数据只保存在这台设备的浏览器里，清理缓存会丢失。建议导出一次备份。'
+  }
+  return `已经 ${days} 天没有导出备份。数据只保存在浏览器里，清理缓存会丢失。`
+})
 </script>
 
 <style scoped>
@@ -727,5 +765,52 @@ h1 {
 .goal-edit:focus-visible {
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
+}
+
+.backup-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-tone-amber-fg);
+  border-radius: var(--radius-lg);
+  background: var(--color-tone-amber-bg);
+}
+
+.backup-copy {
+  min-width: 0;
+}
+
+.backup-title {
+  margin: 0 0 2px;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--color-text-strong);
+}
+
+.backup-text {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--color-tone-amber-fg);
+}
+
+.backup-actions {
+  flex: none;
+  display: flex;
+  gap: var(--space-2);
+}
+
+@media (max-width: 767px) {
+  .backup-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .backup-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 </style>
