@@ -1,6 +1,7 @@
 import type { Database } from './db'
-import type { Mastery } from '@/types'
+import type { Mastery, JobStage } from '@/types'
 import { addDays } from './date'
+import { JOB_STAGES } from './jobs'
 
 export type InsightRange = 7 | 30
 
@@ -30,6 +31,19 @@ export interface InsightSummary {
   studySeries: StudyPoint[]
   topics: TopicMastery[]
   hasActivity: boolean
+  completedSeries: DayCount[]
+  stageCounts: StageCount[]
+}
+
+export interface DayCount {
+  date: string
+  count: number
+}
+
+export interface StageCount {
+  stage: JobStage
+  label: string
+  count: number
 }
 
 // 按指定跨度生成到指定时间的时间数组
@@ -105,10 +119,31 @@ export function summarize(db: Database, days: InsightRange, today: string): Insi
     }))
     .sort((a, b) => a.score - b.score || b.total - a.total)
 
+  const completedByDate = new Map<string, number>()
+  for (const task of db.tasks) {
+    if (!task.done || !task.completedAt) continue
+    const date = task.completedAt.slice(0, 10)
+    if (!inRange(date)) continue
+    completedByDate.set(date, (completedByDate.get(date) ?? 0) + 1)
+  }
+
+  const completedSeries = dates.map((date) => ({
+    date,
+    count: completedByDate.get(date) ?? 0,
+  }))
+
+  const stageCounts = JOB_STAGES.map(({ value, label }) => ({
+    stage: value,
+    label,
+    count: db.applications.filter((app) => app.stage === value).length,
+  }))
+
   return {
     kpis: { completedTasks, studyMinutes, applications, interviews },
     studySeries,
     topics,
     hasActivity: completedTasks + studyMinutes + applications + interviews > 0,
+    completedSeries,
+    stageCounts,
   }
 }

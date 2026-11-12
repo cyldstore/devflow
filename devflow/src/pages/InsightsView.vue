@@ -37,6 +37,36 @@
         <p v-if="card.hint" class="kpi-hint">{{ card.hint }}</p>
       </Card>
     </div>
+
+    <!-- 统计图表 -->
+    <div v-if="summary.hasActivity" class="chart-grid">
+      <Card class="chart-card">
+        <header class="chart-head">
+          <h2>学习投入</h2>
+          <span>分钟 / 天</span>
+        </header>
+        <BaseChart v-if="summary.kpis.studyMinutes > 0" :option="studyOption" :height="220" />
+        <p v-else class="chart-empty">这段时间没有学习记录</p>
+      </Card>
+
+      <Card class="chart-card">
+        <header class="chart-head">
+          <h2>完成任务</h2>
+          <span>项 / 天</span>
+        </header>
+        <BaseChart v-if="summary.kpis.completedTasks > 0" :option="tasksOption" :height="220" />
+        <p v-else class="chart-empty">这段时间没有完成的任务</p>
+      </Card>
+
+      <Card class="chart-card">
+        <header class="chart-head">
+          <h2>投递分布</h2>
+          <span>当前阶段</span>
+        </header>
+        <BaseChart v-if="db.applications.length > 0" :option="stageOption" :height="240" />
+        <p v-else class="chart-empty">还没有投递记录</p>
+      </Card>
+    </div>
   </section>
 </template>
 
@@ -50,6 +80,10 @@ import { formatMinutes } from '@/lib/format'
 import { rangeDates, summarize } from '@/lib/insights'
 import type { InsightRange } from '@/lib/insights'
 import { useDatabase } from '@/stores/db'
+import type { EChartsOption } from 'echarts'
+import type { JobStage } from '@/types'
+import BaseChart from '@/components/ui/BaseChart.vue'
+import { tokenColor } from '@/lib/charts'
 
 const RANGES: { value: InsightRange; label: string }[] = [
   { value: 7, label: '最近 7 天' },
@@ -80,6 +114,117 @@ const kpiCards = computed(() => {
 function goTasks() {
   router.push('/tasks')
 }
+
+const dayLabels = computed(() => rangeDates(today, range.value).map((date) => date.slice(5)))
+
+const studyOption = computed<EChartsOption>(() => {
+  const line = tokenColor('--line')
+  const lineSoft = tokenColor('--line-soft')
+  const muted = tokenColor('--muted')
+  const faint = tokenColor('--muted-2')
+
+  return {
+    grid: { left: 8, right: 12, top: 16, bottom: 8, containLabel: true },
+    tooltip: { trigger: 'axis' },
+    xAxis: {
+      type: 'category',
+      data: dayLabels.value,
+      axisLine: { lineStyle: { color: line } },
+      axisTick: { show: false },
+      axisLabel: { color: muted, fontSize: 10 },
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: lineSoft } },
+      axisLabel: { color: faint, fontSize: 10 },
+    },
+    series: [
+      {
+        type: 'bar',
+        name: '学习分钟',
+        data: summary.value.studySeries.map((point) => point.minutes),
+        itemStyle: { color: tokenColor('--lime'), borderRadius: [4, 4, 0, 0] },
+        barMaxWidth: 18,
+      },
+    ],
+  }
+})
+
+const tasksOption = computed<EChartsOption>(() => {
+  const line = tokenColor('--line')
+  const lineSoft = tokenColor('--line-soft')
+  const muted = tokenColor('--muted')
+  const faint = tokenColor('--muted-2')
+  const blue = tokenColor('--blue')
+
+  return {
+    grid: { left: 8, right: 12, top: 16, bottom: 8, containLabel: true },
+    tooltip: { trigger: 'axis' },
+    xAxis: {
+      type: 'category',
+      data: dayLabels.value,
+      axisLine: { lineStyle: { color: line } },
+      axisTick: { show: false },
+      axisLabel: { color: muted, fontSize: 10 },
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      splitLine: { lineStyle: { color: lineSoft } },
+      axisLabel: { color: faint, fontSize: 10 },
+    },
+    series: [
+      {
+        type: 'line',
+        name: '完成任务',
+        data: summary.value.completedSeries.map((point) => point.count),
+        smooth: true,
+        symbolSize: 5,
+        lineStyle: { color: blue, width: 2 },
+        itemStyle: { color: blue },
+        areaStyle: { color: tokenColor('--blue-soft') },
+      },
+    ],
+  }
+})
+
+const stageOption = computed<EChartsOption>(() => {
+  const stageColors: Record<JobStage, string> = {
+    saved: tokenColor('--muted-2'),
+    applied: tokenColor('--blue'),
+    interview: tokenColor('--amber'),
+    offer: tokenColor('--lime'),
+    closed: tokenColor('--stone'),
+  }
+
+  return {
+    tooltip: { trigger: 'item' },
+    legend: {
+      bottom: 0,
+      icon: 'circle',
+      itemWidth: 8,
+      itemHeight: 8,
+      textStyle: { color: tokenColor('--muted'), fontSize: 11 },
+    },
+    series: [
+      {
+        type: 'pie',
+        radius: ['52%', '74%'],
+        center: ['50%', '44%'],
+        label: { show: false },
+        itemStyle: {
+          borderColor: tokenColor('--panel'),
+          borderWidth: 2,
+        },
+        data: summary.value.stageCounts.map((item) => ({
+          name: item.label,
+          value: item.count,
+          itemStyle: { color: stageColors[item.stage] },
+        })),
+      },
+    ],
+  }
+})
 </script>
 
 <style scoped>
@@ -203,5 +348,44 @@ h1 {
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
   color: var(--color-text-muted);
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.chart-card {
+  padding: var(--space-5);
+}
+
+.chart-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.chart-head h2 {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 650;
+  color: var(--color-text-strong);
+}
+
+.chart-head span {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+.chart-empty {
+  margin: 0;
+  padding: var(--space-8) 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
 }
 </style>
