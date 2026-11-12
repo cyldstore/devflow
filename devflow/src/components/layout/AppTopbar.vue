@@ -5,26 +5,42 @@
       <span class="brand-name">DevFlow</span>
     </RouterLink>
 
-    <input
-      type="search"
-      class="search"
-      placeholder="搜索任务、笔记、公司..."
-      aria-label="全局搜索"
-    />
-
     <div class="actions">
-      <Button variant="ghost" @click="openSettings">设置</Button>
-      <Button variant="lime">
-        <Plus :size="14" aria-hidden="true" />
-        快速新建
+      <Button
+        variant="ghost"
+        class="export-btn"
+        :aria-label="hasUnexportedChanges ? '导出备份（有未备份的修改）' : '导出备份'"
+        @click="exportData"
+      >
+        导出
+        <span v-if="hasUnexportedChanges" class="backup-dot" aria-hidden="true" />
       </Button>
+
+      <Button variant="ghost" @click="openSettings">设置</Button>
     </div>
   </header>
 </template>
 <script setup lang="ts">
-import { Plus } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import { openSettings } from '@/stores/ui'
+import { useDatabase } from '@/stores/db'
+import { markExported, useBackupMeta } from '@/stores/backup'
+import { downloadBackup } from '@/lib/backup'
+import { toast } from '@/lib/toast'
+
+const db = useDatabase()
+const { hasUnexportedChanges } = useBackupMeta()
+
+function exportData() {
+  downloadBackup(db)
+  markExported()
+  toast.add({
+    title: '已导出备份',
+    description: '文件已保存到下载目录',
+    status: 'success',
+    duration: 3000,
+  })
+}
 </script>
 
 <style scoped>
@@ -57,23 +73,6 @@ import { openSettings } from '@/stores/ui'
   font-weight: 800;
 }
 
-.search {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: 420px;
-  height: 34px;
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-background);
-  color: var(--color-text);
-}
-
-.search:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
-}
-
 .actions {
   margin-left: auto;
   display: flex;
@@ -100,5 +99,19 @@ import { openSettings } from '@/stores/ui'
 .brand:focus-visible {
   outline: 2px solid var(--color-text-strong);
   outline-offset: 2px;
+}
+
+.export-btn {
+  position: relative;
+}
+
+.backup-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-circle);
+  background: var(--color-danger);
 }
 </style>

@@ -2,6 +2,7 @@ import { reactive, readonly, ref, watch } from 'vue'
 import type { Database } from '@/lib/db'
 import { loadDatabase, saveDatabase, createEmptyDatabase } from '@/lib/db'
 import { createSeedDatabase } from '@/lib/seed'
+import { markDataChanged } from './backup'
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' // 保存状态
 
@@ -28,6 +29,7 @@ export function useSaveStatus() {
 export function persist(): boolean {
   clearPending()
   const ok = saveDatabase(state)
+  if (ok) markDataChanged()
   status.value = ok ? 'saved' : 'error'
   return ok
 }
@@ -65,6 +67,7 @@ function scheduleSave(): void {
   timer = setTimeout(() => {
     timer = undefined
     const ok = saveDatabase(state)
+    if (ok) markDataChanged()
     status.value = ok ? 'saved' : 'error'
   }, SAVE_DELAY)
 }
