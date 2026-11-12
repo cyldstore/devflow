@@ -16,6 +16,7 @@
         <span v-if="hasUnexportedChanges" class="backup-dot" aria-hidden="true" />
       </Button>
 
+      <ImportBackup />
       <Button variant="ghost" @click="openSettings">设置</Button>
     </div>
   </header>
@@ -23,24 +24,12 @@
 <script setup lang="ts">
 import Button from '@/components/ui/Button.vue'
 import { openSettings } from '@/stores/ui'
-import { useDatabase } from '@/stores/db'
-import { markExported, useBackupMeta } from '@/stores/backup'
-import { downloadBackup } from '@/lib/backup'
-import { toast } from '@/lib/toast'
+import { useBackupMeta } from '@/stores/backup'
+import ImportBackup from './ImportBackup.vue'
+import { useBackupExport } from '@/composables/useBackupExport'
 
-const db = useDatabase()
+const { exportData } = useBackupExport()
 const { hasUnexportedChanges } = useBackupMeta()
-
-function exportData() {
-  downloadBackup(db)
-  markExported()
-  toast.add({
-    title: '已导出备份',
-    description: '文件已保存到下载目录',
-    status: 'success',
-    duration: 3000,
-  })
-}
 </script>
 
 <style scoped>

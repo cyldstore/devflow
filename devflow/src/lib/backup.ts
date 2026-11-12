@@ -12,7 +12,8 @@ export interface BackupFile {
   data: Database
 }
 
-export type ImportResult = { ok: true; data: Database } | { ok: false; error: string }
+export type ImportResult =
+  { ok: true; data: Database; exportedAt: string | null } | { ok: false; error: string }
 
 // 生成备份
 export function createBackup(db: Database): string {
@@ -52,7 +53,11 @@ export function parseBackup(text: string): ImportResult {
     return { ok: false, error: '这不是 DevFlow 的备份文件' }
   }
 
-  return { ok: true, data: normalizeDatabase(raw.data) }
+  return {
+    ok: true,
+    data: normalizeDatabase(raw.data),
+    exportedAt: typeof raw.exportedAt === 'string' ? raw.exportedAt : null,
+  }
 }
 
 export async function readBackupFile(file: File): Promise<ImportResult> {
