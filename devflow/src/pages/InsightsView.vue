@@ -201,6 +201,7 @@ import { Plus } from 'lucide-vue-next'
 import AppDialog from '@/components/ui/AppDialog.vue'
 import { createStudyLog } from '@/stores/study'
 import { toast } from '@/lib/toast'
+import { studyBarOption } from '@/lib/chart-options'
 
 const RANGES: { value: InsightRange; label: string }[] = [
   { value: 7, label: '最近 7 天' },
@@ -235,38 +236,12 @@ function goTasks() {
 
 const dayLabels = computed(() => rangeDates(today, range.value).map((date) => date.slice(5)))
 
-const studyOption = computed<EChartsOption>(() => {
-  const line = tokenColor('--line')
-  const lineSoft = tokenColor('--line-soft')
-  const muted = tokenColor('--muted')
-  const faint = tokenColor('--muted-2')
-
-  return {
-    grid: { left: 8, right: 12, top: 16, bottom: 8, containLabel: true },
-    tooltip: { trigger: 'axis' },
-    xAxis: {
-      type: 'category',
-      data: dayLabels.value,
-      axisLine: { lineStyle: { color: line } },
-      axisTick: { show: false },
-      axisLabel: { color: muted, fontSize: 10 },
-    },
-    yAxis: {
-      type: 'value',
-      splitLine: { lineStyle: { color: lineSoft } },
-      axisLabel: { color: faint, fontSize: 10 },
-    },
-    series: [
-      {
-        type: 'bar',
-        name: '学习分钟',
-        data: summary.value.studySeries.map((point) => point.minutes),
-        itemStyle: { color: tokenColor('--lime'), borderRadius: [4, 4, 0, 0] },
-        barMaxWidth: 18,
-      },
-    ],
-  }
-})
+const studyOption = computed(() =>
+  studyBarOption(
+    dayLabels.value,
+    summary.value.studySeries.map((point) => point.minutes),
+  ),
+)
 
 const tasksOption = computed<EChartsOption>(() => {
   const line = tokenColor('--line')

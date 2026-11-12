@@ -17,62 +17,114 @@
       </div>
     </header>
 
-    <Card v-if="overdueTasks.length > 0" class="overdue-card">
-      <header class="block-head">
-        <h2 class="block-title">逾期 {{ overdueTasks.length }} 项</h2>
-      </header>
+    <div class="ov-grid">
+      <div class="ov-main">
+        <!-- 逾期卡片 -->
+        <Card v-if="overdueTasks.length > 0" class="overdue-card">
+          <header class="block-head">
+            <h2 class="block-title">逾期 {{ overdueTasks.length }} 项</h2>
+          </header>
 
-      <ul class="overdue-list">
-        <li v-for="task in overdueTasks" :key="task.id" class="overdue-row">
-          <span class="overdue-title">{{ task.title }}</span>
-          <time class="overdue-date" :datetime="task.date">{{ task.date }}</time>
-          <button type="button" class="overdue-move" @click="moveToToday(task)">移到今天</button>
-        </li>
-      </ul>
-    </Card>
+          <ul class="overdue-list">
+            <li v-for="task in overdueTasks" :key="task.id" class="overdue-row">
+              <span class="overdue-title">{{ task.title }}</span>
+              <time class="overdue-date" :datetime="task.date">{{ task.date }}</time>
+              <button type="button" class="overdue-move" @click="moveToToday(task)">
+                移到今天
+              </button>
+            </li>
+          </ul>
+        </Card>
 
-    <Card class="focus-card">
-      <header class="block-head">
-        <div>
-          <h2 class="block-title">今日聚焦</h2>
-        </div>
-        <span class="focus-count">{{ doneToday }} / {{ todayTasks.length }}</span>
-      </header>
-
-      <div v-if="todayTasks.length === 0" class="focus-empty">
-        <p>今天还没有安排任务。</p>
-        <Button variant="ghost" @click="goTasks">去任务页添加</Button>
-      </div>
-
-      <ul v-else class="focus-list">
-        <li v-for="task in focusTasks" :key="task.id" :class="['focus-row', { done: task.done }]">
-          <label class="check-wrap">
-            <input
-              class="check-input"
-              type="checkbox"
-              :checked="task.done"
-              :aria-label="task.done ? `取消完成：${task.title}` : `完成：${task.title}`"
-              @change="handleToggle(task)"
-            />
-            <span class="check" aria-hidden="true">
-              <Check v-if="task.done" :size="12" :stroke-width="2.6" />
-            </span>
-          </label>
-
-          <div class="copy">
-            <p class="title">{{ task.title }}</p>
-            <div class="meta">
-              <Chip :tone="CATEGORY_TONES[task.category]">
-                {{ CATEGORY_LABELS[task.category] }}
-              </Chip>
-              <span v-if="task.estimateMin" class="meta-item">{{ task.estimateMin }} 分钟</span>
+        <!-- 今日聚焦卡片 -->
+        <Card class="focus-card">
+          <header class="block-head">
+            <div>
+              <h2 class="block-title">今日聚焦</h2>
             </div>
+            <span class="focus-count">{{ doneToday }} / {{ todayTasks.length }}</span>
+          </header>
+
+          <div v-if="todayTasks.length === 0" class="focus-empty">
+            <p>今天还没有安排任务。</p>
+            <Button variant="ghost" @click="goTasks">去任务页添加</Button>
           </div>
 
-          <span :class="['priority', task.priority.toLowerCase()]">{{ task.priority }}</span>
-        </li>
-      </ul>
-    </Card>
+          <ul v-else class="focus-list">
+            <li
+              v-for="task in focusTasks"
+              :key="task.id"
+              :class="['focus-row', { done: task.done }]"
+            >
+              <label class="check-wrap">
+                <input
+                  class="check-input"
+                  type="checkbox"
+                  :checked="task.done"
+                  :aria-label="task.done ? `取消完成：${task.title}` : `完成：${task.title}`"
+                  @change="handleToggle(task)"
+                />
+                <span class="check" aria-hidden="true">
+                  <Check v-if="task.done" :size="12" :stroke-width="2.6" />
+                </span>
+              </label>
+
+              <div class="copy">
+                <p class="title">{{ task.title }}</p>
+                <div class="meta">
+                  <Chip :tone="CATEGORY_TONES[task.category]">
+                    {{ CATEGORY_LABELS[task.category] }}
+                  </Chip>
+                  <span v-if="task.estimateMin" class="meta-item">{{ task.estimateMin }} 分钟</span>
+                </div>
+              </div>
+
+              <span :class="['priority', task.priority.toLowerCase()]">{{ task.priority }}</span>
+            </li>
+          </ul>
+        </Card>
+
+        <!-- 记录图表 -->
+        <Card class="chart-card">
+          <header class="side-head">
+            <div>
+              <h2 class="block-title">学习投入</h2>
+              <p class="block-sub">最近 7 天 · 分钟</p>
+            </div>
+          </header>
+
+          <BaseChart v-if="week7.kpis.studyMinutes > 0" :option="studyOption" :height="200" />
+          <p v-else class="chart-empty">最近 7 天没有学习记录</p>
+        </Card>
+      </div>
+
+      <aside class="ov-side">
+        <Card class="goal-card">
+          <header class="side-head">
+            <div>
+              <h2 class="block-title">本周学习</h2>
+              <p class="block-sub">目标 {{ goalHours }} 小时</p>
+            </div>
+            <span class="goal-percent">{{ goalPercent }}%</span>
+          </header>
+
+          <p class="goal-value">
+            {{ weekHours }}
+            <span class="goal-total">/ {{ goalHours }} 小时</span>
+          </p>
+
+          <div class="goal-bar" aria-hidden="true">
+            <span class="goal-fill" :style="{ width: `${goalPercent}%` }" />
+          </div>
+
+          <p class="goal-hint">
+            <template v-if="remainingMinutes > 0">还差 {{ remainingText }}</template>
+            <template v-else>本周目标已完成</template>
+            <template v-if="streak > 0"> · 连续 {{ streak }} 天</template>
+          </p>
+        </Card>
+      </aside>
+    </div>
   </section>
 </template>
 
@@ -84,12 +136,16 @@ import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Chip from '@/components/ui/Chip.vue'
 import { localDate } from '@/lib/date'
-import { sortTasks } from '@/lib/tasks'
+import { sortTasks, startOfWeek } from '@/lib/tasks'
 import { CATEGORY_LABELS, CATEGORY_TONES } from '@/lib/task-meta'
 import { useDatabase } from '@/stores/db'
 import { rescheduleTask, toggleTask } from '@/stores/tasks'
 import { toast } from '@/lib/toast'
 import type { Task } from '@/types'
+import { minutesInRange, studyStreak, summarize } from '@/lib/insights'
+import { formatMinutes } from '@/lib/format'
+import { studyBarOption } from '@/lib/chart-options'
+import BaseChart from '@/components/ui/BaseChart.vue'
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
@@ -168,6 +224,29 @@ function goLog() {
 function goTasks() {
   router.push('/tasks')
 }
+
+const weekStart = startOfWeek(today)
+
+const weekMinutes = computed(() => minutesInRange(db.studyLogs, weekStart, today))
+const weekHours = computed(() => (weekMinutes.value / 60).toFixed(1))
+const goalHours = computed(() => db.profile.weeklyGoalHours || 0)
+
+const goalPercent = computed(() => {
+  if (goalHours.value <= 0) return 0
+  return Math.min(100, Math.round((weekMinutes.value / (goalHours.value * 60)) * 100))
+})
+
+const remainingMinutes = computed(() => Math.max(0, goalHours.value * 60 - weekMinutes.value))
+const remainingText = computed(() => formatMinutes(remainingMinutes.value))
+const streak = computed(() => studyStreak(db.studyLogs, today))
+
+const week7 = computed(() => summarize(db, 7, today))
+const studyOption = computed(() =>
+  studyBarOption(
+    week7.value.studySeries.map((point) => point.date.slice(5)),
+    week7.value.studySeries.map((point) => point.minutes),
+  ),
+)
 </script>
 
 <style scoped>
@@ -415,5 +494,88 @@ h1 {
 
 .focus-empty p {
   margin: 0;
+}
+
+.ov-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.ov-main,
+.ov-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.side-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.chart-card,
+.goal-card {
+  padding: var(--space-5);
+}
+
+.goal-percent {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-tone-lime-fg);
+}
+
+.goal-value {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-2xl);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--color-text-strong);
+}
+
+.goal-total {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-text-faint);
+}
+
+.goal-bar {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-background);
+  overflow: hidden;
+}
+
+.goal-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+  transition: width 240ms ease;
+}
+
+.goal-hint {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+
+.chart-empty {
+  margin: 0;
+  padding: var(--space-7) 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+}
+
+@media (max-width: 1023px) {
+  .ov-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

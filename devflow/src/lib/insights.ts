@@ -1,5 +1,5 @@
 import type { Database } from './db'
-import type { Mastery, JobStage } from '@/types'
+import type { Mastery, JobStage, StudyLog } from '@/types'
 import { addDays } from './date'
 import { JOB_STAGES } from './jobs'
 
@@ -146,4 +146,25 @@ export function summarize(db: Database, days: InsightRange, today: string): Insi
     completedSeries,
     stageCounts,
   }
+}
+
+export function minutesInRange(logs: StudyLog[], start: string, end: string): number {
+  return logs
+    .filter((log) => log.date >= start && log.date <= end)
+    .reduce((sum, log) => sum + log.minutes, 0)
+}
+
+export function studyStreak(logs: StudyLog[], today: string): number {
+  const dates = new Set(logs.map((log) => log.date))
+
+  // 今天还没记录时从昨天开始数，避免早上打开就“断签”
+  let cursor = dates.has(today) ? today : addDays(today, -1)
+  let streak = 0
+
+  while (dates.has(cursor)) {
+    streak += 1
+    cursor = addDays(cursor, -1)
+  }
+
+  return streak
 }
