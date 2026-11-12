@@ -7,7 +7,7 @@
       </div>
 
       <div class="head-actions">
-        <Button variant="lime" @click="openLog">
+        <Button variant="lime" @click="openLog()">
           <Plus :size="14" aria-hidden="true" />
           记录学习
         </Button>
@@ -131,7 +131,11 @@
               min="1"
               step="1"
               inputmode="numeric"
+              @input="estimateMin = null"
             />
+            <span v-if="estimateMin" class="tip">
+              已带入任务估时 {{ estimateMin }} 分钟，可按实际修改
+            </span>
           </label>
         </div>
 
@@ -180,8 +184,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref, reactive, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import { localDate } from '@/lib/date'
@@ -204,6 +208,7 @@ const RANGES: { value: InsightRange; label: string }[] = [
 ]
 
 const router = useRouter()
+const route = useRoute()
 const db = useDatabase()
 const today = localDate()
 
@@ -373,15 +378,16 @@ const canSaveLog = computed(
   () => logDraft.topic.trim() !== '' && Number.isFinite(logDraft.minutes) && logDraft.minutes > 0,
 )
 
-function openLog() {
+function openLog(presetMinutes = 30) {
   Object.assign(logDraft, {
     date: today,
-    minutes: 30,
+    minutes: presetMinutes,
     topic: '',
     activity: 'reading',
     takeaway: '',
   })
   logOpen.value = true
+  estimateMin.value = null
 }
 
 function saveLog() {
@@ -404,6 +410,32 @@ function saveLog() {
     duration: 3000,
   })
 }
+
+function readEstimateMinutes(): number | null {
+  const raw = route.query.estimateMin
+  if (typeof raw !== 'string' || raw.trim() === '') return null
+
+  const value = Number(raw)
+  if (!Number.isFinite(value) || value <= 0) return null
+
+  return Math.min(Math.round(value), 14400)
+}
+
+const estimateMin = ref<string | null>(null)
+
+watch(
+  () => route.query.log,
+  (log) => {
+    if (log !== '1') return
+
+    const preset = readEstimateMinutes()
+    openLog(preset ?? 30)
+    estimateMin.value = preset === null ? null : String(preset)
+
+    router.replace({ query: { ...route.query, log: undefined, estimateMin: undefined } })
+  },
+  { immediate: true },
+)
 </script>
 
 <style scoped>
@@ -655,5 +687,11 @@ h1 {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+.tip {
+  margin-right: auto;
+  font-size: var(--text-2xs);
+  color: var(--color-tone-sage-fg);
 }
 </style>

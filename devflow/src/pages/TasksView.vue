@@ -216,6 +216,7 @@ import type { TaskCategory, Task, Priority } from '@/types'
 import { addTask, toggleTask, removeTask, restoreTask, updateTask } from '@/stores/tasks'
 import { toast } from '@/lib/toast'
 import AppDrawer from '@/components/ui/AppDrawer.vue'
+import { useRouter } from 'vue-router'
 
 // 类别标签名称
 const CATEGORY_LABELS: Record<TaskCategory, string> = {
@@ -256,6 +257,8 @@ function focusInput() {
 }
 
 // 完成/取消完成任务
+const router = useRouter()
+
 function handleToggle(task: Task) {
   const willBeDone = !task.done
   toggleTask(task.id)
@@ -265,11 +268,24 @@ function handleToggle(task: Task) {
       title: '已完成',
       description: task.title,
       status: 'success',
-      duration: 5000,
+      duration: 8000,
       actionProps: {
         label: '撤销',
         altText: '撤销完成',
         onClick: () => toggleTask(task.id),
+      },
+      data: {
+        secondaryAction: {
+          label: '记录学习',
+          onClick: () =>
+            router.push({
+              path: '/insights',
+              query:
+                task.estimateMin && task.estimateMin > 0
+                  ? { log: '1', estimateMin: String(task.estimateMin) }
+                  : { log: '1' },
+            }),
+        },
       },
     })
   }

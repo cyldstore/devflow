@@ -1,3 +1,12 @@
 import { createToastManager } from 'reka-ui'
 
-export const toast = createToastManager()
+export interface ToastExtraAction {
+  label: string
+  onClick: () => void
+}
+
+export interface ToastData {
+  secondaryAction?: ToastExtraAction
+}
+
+export const toast = createToastManager<ToastData>()

@@ -12,8 +12,17 @@
         <ToastDescription v-if="t.description" class="description" />
       </div>
 
-      <div v-if="t.actionProps" class="actions">
-        <ToastAction class="action" />
+      <div v-if="t.actionProps || t.data?.secondaryAction" class="actions">
+        <button
+          v-if="t.data?.secondaryAction"
+          type="button"
+          class="action secondary"
+          @click="runSecondary(t.id, t.data.secondaryAction)"
+        >
+          {{ t.data.secondaryAction.label }}
+        </button>
+
+        <ToastAction v-if="t.actionProps" class="action" />
       </div>
 
       <ToastClose class="close" aria-label="关闭">
@@ -34,7 +43,12 @@ import {
   useToastManager,
 } from 'reka-ui'
 
-const { toasts } = useToastManager()
+const { toasts, close } = useToastManager()
+
+function runSecondary(id: string, action: { onClick: () => void }) {
+  action.onClick()
+  close(id)
+}
 </script>
 
 <style scoped>
@@ -201,5 +215,23 @@ const { toasts } = useToastManager()
   .toast[data-state] {
     animation: none;
   }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.action.secondary {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid transparent;
+}
+
+.action.secondary:hover {
+  background: var(--color-background);
+  color: var(--color-text-strong);
 }
 </style>
