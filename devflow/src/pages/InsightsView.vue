@@ -6,17 +6,24 @@
         <h1>复盘</h1>
       </div>
 
-      <div class="range-toggle" role="group" aria-label="时间范围">
-        <button
-          v-for="item in RANGES"
-          :key="item.value"
-          type="button"
-          :class="['range-btn', { active: range === item.value }]"
-          :aria-pressed="range === item.value"
-          @click="range = item.value"
-        >
-          {{ item.label }}
-        </button>
+      <div class="head-actions">
+        <Button variant="lime" @click="openLog">
+          <Plus :size="14" aria-hidden="true" />
+          记录学习
+        </Button>
+
+        <div class="range-toggle" role="group" aria-label="时间范围">
+          <button
+            v-for="item in RANGES"
+            :key="item.value"
+            type="button"
+            :class="['range-btn', { active: range === item.value }]"
+            :aria-pressed="range === item.value"
+            @click="range = item.value"
+          >
+            {{ item.label }}
+          </button>
+        </div>
       </div>
     </header>
 
@@ -105,11 +112,75 @@
         </li>
       </ul>
     </Card>
+
+    <!-- 学习记录弹窗 -->
+    <AppDialog v-model:open="logOpen" title="记录学习" description="今天学了什么，记一笔。">
+      <form id="study-log-form" class="form" @submit.prevent="saveLog">
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">日期</span>
+            <input v-model="logDraft.date" class="input" type="date" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">时长（分钟）</span>
+            <input
+              v-model.number="logDraft.minutes"
+              class="input"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+            />
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="field-label">主题（必填）</span>
+          <input
+            v-model="logDraft.topic"
+            class="input"
+            type="text"
+            list="study-topics"
+            placeholder="Vue / 浏览器 / 算法"
+          />
+          <datalist id="study-topics">
+            <option v-for="topic in topicOptions" :key="topic" :value="topic" />
+          </datalist>
+        </label>
+
+        <label class="field">
+          <span class="field-label">活动类型</span>
+          <select v-model="logDraft.activity" class="input">
+            <option v-for="item in ACTIVITIES" :key="item.value" :value="item.value">
+              {{ item.label }}
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label">收获（可选）</span>
+          <textarea
+            v-model="logDraft.takeaway"
+            class="input textarea"
+            rows="3"
+            placeholder="一句话记下今天真正理解的东西"
+          />
+        </label>
+      </form>
+
+      <template #footer>
+        <Button variant="ghost" @click="logOpen = false">取消</Button>
+        <Button variant="lime" type="submit" form="study-log-form" :disabled="!canSaveLog">
+          记录
+        </Button>
+      </template>
+    </AppDialog>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
@@ -119,9 +190,13 @@ import { rangeDates, summarize } from '@/lib/insights'
 import type { InsightRange } from '@/lib/insights'
 import { useDatabase } from '@/stores/db'
 import type { EChartsOption } from 'echarts'
-import type { JobStage } from '@/types'
+import type { JobStage, StudyLog } from '@/types'
 import BaseChart from '@/components/ui/BaseChart.vue'
 import { tokenColor } from '@/lib/charts'
+import { Plus } from 'lucide-vue-next'
+import AppDialog from '@/components/ui/AppDialog.vue'
+import { createStudyLog } from '@/stores/study'
+import { toast } from '@/lib/toast'
 
 const RANGES: { value: InsightRange; label: string }[] = [
   { value: 7, label: '最近 7 天' },
@@ -268,6 +343,66 @@ function masteryTone(score: number): string {
   if (score < 0.75) return 'weak'
   if (score < 1.5) return 'mid'
   return 'strong'
+}
+
+const ACTIVITIES: { value: StudyLog['activity']; label: string }[] = [
+  { value: 'reading', label: '阅读' },
+  { value: 'coding', label: '写代码' },
+  { value: 'practice', label: '练习' },
+  { value: 'project', label: '做项目' },
+]
+
+const logOpen = ref(false)
+
+const logDraft = reactive({
+  date: today,
+  minutes: 30,
+  topic: '',
+  activity: 'reading' as StudyLog['activity'],
+  takeaway: '',
+})
+
+const topicOptions = computed(() => {
+  const topics = new Set<string>()
+  for (const item of db.knowledge) topics.add(item.topic)
+  for (const log of db.studyLogs) topics.add(log.topic)
+  return [...topics].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))
+})
+
+const canSaveLog = computed(
+  () => logDraft.topic.trim() !== '' && Number.isFinite(logDraft.minutes) && logDraft.minutes > 0,
+)
+
+function openLog() {
+  Object.assign(logDraft, {
+    date: today,
+    minutes: 30,
+    topic: '',
+    activity: 'reading',
+    takeaway: '',
+  })
+  logOpen.value = true
+}
+
+function saveLog() {
+  if (!canSaveLog.value) return
+
+  const log = createStudyLog({
+    date: logDraft.date,
+    minutes: logDraft.minutes,
+    topic: logDraft.topic,
+    activity: logDraft.activity,
+    takeaway: logDraft.takeaway,
+  })
+  if (!log) return
+
+  logOpen.value = false
+  toast.add({
+    title: '已记录学习',
+    description: `${log.topic} · ${log.minutes} 分钟`,
+    status: 'success',
+    duration: 3000,
+  })
 }
 </script>
 
@@ -514,5 +649,11 @@ h1 {
 
 .topic-link:hover {
   text-decoration: underline;
+}
+
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 </style>
