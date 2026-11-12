@@ -720,13 +720,6 @@ h1 {
 
 .tabs {
   display: flex;
-  gap: var(--space-1);
-  padding: 0 0 var(--space-3) var(--space-5);
-  overflow-x: auto;
-}
-
-.tabs {
-  display: flex;
   flex-wrap: wrap;
   gap: 2px;
   width: fit-content;
@@ -790,11 +783,6 @@ h1 {
   font: inherit;
   text-align: left;
   cursor: pointer;
-}
-
-.item + .item {
-  border-top: 1px solid var(--color-border);
-  border-radius: 0;
 }
 
 .item:hover {

@@ -606,13 +606,6 @@ h1 {
   color: var(--color-text-muted);
 }
 
-.board {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-4);
-  align-items: start;
-}
-
 .column {
   min-width: 0;
   padding: var(--space-3);
@@ -1033,24 +1026,6 @@ h1 {
   color: var(--color-text-faint);
 }
 
-@media (max-width: 767px) {
-  .stage-tabs {
-    display: flex;
-  }
-
-  .board {
-    display: block;
-  }
-
-  .column {
-    margin-bottom: var(--space-4);
-  }
-
-  .stage-hidden {
-    display: none;
-  }
-}
-
 .next-row {
   display: flex;
   align-items: center;
@@ -1074,5 +1049,127 @@ h1 {
   margin: var(--space-2) 0 0;
   font-size: var(--text-2xs);
   color: var(--color-text-faint);
+}
+
+/* 小于768采用tab切换 */
+@media (max-width: 767px) {
+  .stage-tabs {
+    display: flex;
+  }
+
+  .board {
+    display: block;
+  }
+
+  .column {
+    margin-bottom: var(--space-4);
+  }
+
+  .stage-hidden {
+    display: none;
+  }
+}
+
+/* 大于768采用行布局 */
+@media (min-width: 768px) {
+  .board {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .column {
+    flex: none;
+  }
+
+  .column-body {
+    flex: none;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: var(--space-2);
+    overscroll-behavior-x: contain;
+
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .column-body:hover {
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  .column-body::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .column-body::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: var(--radius-pill);
+  }
+
+  .column-body:hover::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+  }
+
+  .card-wrap {
+    flex: 0 0 220px;
+  }
+
+  .column-empty {
+    flex: 0 0 160px;
+    min-height: 72px;
+  }
+}
+
+/* 大于1320采用列布局 */
+@media (min-width: 1000px) {
+  .jobs {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .page-head {
+    flex: none;
+  }
+
+  .board {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .column-head {
+    flex: none;
+  }
+
+  .column-body {
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: 0;
+  }
+
+  .card-wrap {
+    flex: none;
+  }
+
+  .column-empty {
+    flex: 1;
+    min-height: 72px;
+  }
 }
 </style>

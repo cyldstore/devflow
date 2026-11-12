@@ -135,7 +135,9 @@ function runSecondary(id: string, action: { onClick: () => void }) {
   grid-area: actions;
   margin-top: var(--space-3);
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: var(--space-2);
 }
 
 .action {
@@ -215,13 +217,6 @@ function runSecondary(id: string, action: { onClick: () => void }) {
   .toast[data-state] {
     animation: none;
   }
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2);
 }
 
 .action.secondary {

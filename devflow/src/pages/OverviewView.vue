@@ -568,14 +568,6 @@ h1 {
   min-width: 0;
 }
 
-.side-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-
 .chart-card,
 .goal-card {
   padding: var(--space-5);
@@ -642,7 +634,7 @@ h1 {
 
 .side-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
   margin-bottom: var(--space-3);
