@@ -1,6 +1,8 @@
 .npm-cache
 /docs/
 /AGENTS.md
+/CLAUDE.md
+/.claude/
 .DS_Store
 Thumbs.db
 .env*.local
