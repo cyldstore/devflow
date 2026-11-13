@@ -1,8 +1,7 @@
 :root {
-  font-family:
-    'Segoe UI Variable Display', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
-  color: #171a16;
-  background: #f2f0e9;
+  font-family: var(--font-sans);
+  color: var(--color-text-strong);
+  background: var(--color-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -21,7 +20,7 @@ body,
 body {
   margin: 0;
   min-width: 320px;
-  background: #f2f0e9;
+  background: var(--color-background);
 }
 
 button,

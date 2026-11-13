@@ -1,0 +1,170 @@
+import type { Database } from './db'
+import type { Mastery, JobStage, StudyLog } from '@/types'
+import { addDays } from './date'
+import { JOB_STAGES } from './jobs'
+
+export type InsightRange = 7 | 30
+
+export interface InsightKpis {
+  completedTasks: number
+  studyMinutes: number
+  applications: number
+  interviews: number
+}
+
+export interface StudyPoint {
+  date: string
+  minutes: number
+}
+
+export interface TopicMastery {
+  topic: string
+  total: number
+  rusty: number
+  learning: number
+  solid: number
+  score: number
+}
+
+export interface InsightSummary {
+  kpis: InsightKpis
+  studySeries: StudyPoint[]
+  topics: TopicMastery[]
+  hasActivity: boolean
+  completedSeries: DayCount[]
+  stageCounts: StageCount[]
+}
+
+export interface DayCount {
+  date: string
+  count: number
+}
+
+export interface StageCount {
+  stage: JobStage
+  label: string
+  count: number
+}
+
+// 按指定跨度生成到指定时间的时间数组
+export function rangeDates(today: string, days: InsightRange): string[] {
+  return Array.from({ length: days }, (_, index) => addDays(today, index - (days - 1)))
+}
+
+const MASTERY_SCORE: Record<Mastery, number> = {
+  rusty: 0,
+  learning: 1,
+  solid: 2,
+}
+
+export function summarize(db: Database, days: InsightRange, today: string): InsightSummary {
+  const dates = rangeDates(today, days)
+  const start = dates[0]
+
+  const inRange = (date?: string): boolean => Boolean(date && date >= start && date <= today)
+
+  // 完成任务数
+  const completedTasks = db.tasks.filter(
+    (task) => task.done && inRange(task.completedAt?.slice(0, 10)),
+  ).length
+
+  const studyLogs = db.studyLogs.filter((log) => inRange(log.date))
+  const studyMinutes = studyLogs.reduce((sum, log) => sum + log.minutes, 0)
+
+  const minutesByDate = new Map<string, number>()
+  // 每天的学习时长
+  for (const log of studyLogs) {
+    minutesByDate.set(log.date, (minutesByDate.get(log.date) ?? 0) + log.minutes)
+  }
+
+  const studySeries: StudyPoint[] = dates.map((date) => ({
+    date,
+    minutes: minutesByDate.get(date) ?? 0,
+  }))
+
+  const applications = db.applications.filter((app) => inRange(app.appliedAt)).length
+
+  // 面试数
+  const interviews = db.applications.reduce((count, app) => {
+    return (
+      count +
+      app.timeline.filter((event) => event.type === 'interview' && inRange(event.date)).length
+    )
+  }, 0)
+
+  // 汇总知识标签不同熟练度数量
+  const topicMap = new Map<string, TopicMastery>()
+  for (const item of db.knowledge) {
+    if (!item.mastery) continue
+
+    const entry = topicMap.get(item.topic) ?? {
+      topic: item.topic,
+      total: 0,
+      rusty: 0,
+      learning: 0,
+      solid: 0,
+      score: 0,
+    }
+
+    entry[item.mastery] += 1
+    entry.total += 1
+    topicMap.set(item.topic, entry)
+  }
+
+  const topics = [...topicMap.values()]
+    .map((entry) => ({
+      ...entry,
+      score:
+        (entry.solid * MASTERY_SCORE.solid + entry.learning * MASTERY_SCORE.learning) / entry.total,
+    }))
+    .sort((a, b) => a.score - b.score || b.total - a.total)
+
+  const completedByDate = new Map<string, number>()
+  for (const task of db.tasks) {
+    if (!task.done || !task.completedAt) continue
+    const date = task.completedAt.slice(0, 10)
+    if (!inRange(date)) continue
+    completedByDate.set(date, (completedByDate.get(date) ?? 0) + 1)
+  }
+
+  const completedSeries = dates.map((date) => ({
+    date,
+    count: completedByDate.get(date) ?? 0,
+  }))
+
+  const stageCounts = JOB_STAGES.map(({ value, label }) => ({
+    stage: value,
+    label,
+    count: db.applications.filter((app) => app.stage === value).length,
+  }))
+
+  return {
+    kpis: { completedTasks, studyMinutes, applications, interviews },
+    studySeries,
+    topics,
+    hasActivity: completedTasks + studyMinutes + applications + interviews > 0,
+    completedSeries,
+    stageCounts,
+  }
+}
+
+export function minutesInRange(logs: StudyLog[], start: string, end: string): number {
+  return logs
+    .filter((log) => log.date >= start && log.date <= end)
+    .reduce((sum, log) => sum + log.minutes, 0)
+}
+
+export function studyStreak(logs: StudyLog[], today: string): number {
+  const dates = new Set(logs.map((log) => log.date))
+
+  // 今天还没记录时从昨天开始数，避免早上打开就“断签”
+  let cursor = dates.has(today) ? today : addDays(today, -1)
+  let streak = 0
+
+  while (dates.has(cursor)) {
+    streak += 1
+    cursor = addDays(cursor, -1)
+  }
+
+  return streak
+}
