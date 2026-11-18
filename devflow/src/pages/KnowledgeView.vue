@@ -178,7 +178,49 @@
           </div>
         </header>
 
-        <div class="prose" v-html="selectedHtml" />
+        <div class="detail-tabs" role="tablist" aria-label="知识详情视图">
+          <button
+            id="detail-tab-content"
+            type="button"
+            role="tab"
+            :aria-selected="detailTab === 'content'"
+            aria-controls="detail-panel-content"
+            :class="['detail-tab', { active: detailTab === 'content' }]"
+            @click="detailTab = 'content'"
+          >
+            内容
+          </button>
+
+          <button
+            id="detail-tab-qa"
+            type="button"
+            role="tab"
+            :aria-selected="detailTab === 'qa'"
+            aria-controls="detail-panel-qa"
+            :class="['detail-tab', { active: detailTab === 'qa' }]"
+            @click="detailTab = 'qa'"
+          >
+            AI 问答
+          </button>
+        </div>
+
+        <div
+          v-show="detailTab === 'content'"
+          id="detail-panel-content"
+          role="tabpanel"
+          aria-labelledby="detail-tab-content"
+          class="prose"
+          v-html="selectedHtml"
+        />
+
+        <KnowledgeQaPanel
+          v-show="detailTab === 'qa'"
+          id="detail-panel-qa"
+          role="tabpanel"
+          aria-labelledby="detail-tab-qa"
+          :key="selected.id"
+          :item="selected"
+        />
       </template>
 
       <div v-else class="detail-empty">
@@ -305,6 +347,7 @@ import {
 } from '@/stores/knowledge'
 import { toast } from '@/lib/toast'
 import { useRoute, useRouter } from 'vue-router'
+import KnowledgeQaPanel from '@/components/ai/KnowledgeQaPanel.vue'
 
 const TABS: { value: KnowledgeFilter; label: string }[] = [
   { value: 'all', label: '全部' },
@@ -688,6 +731,12 @@ watch(
   },
   { immediate: true },
 )
+
+const detailTab = ref<'content' | 'qa'>('content')
+
+watch(selectedId, () => {
+  detailTab.value = 'content'
+})
 </script>
 
 <style scoped>
@@ -847,6 +896,39 @@ h1 {
   border-bottom: 1px solid var(--color-border);
 }
 
+.detail-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.detail-tab {
+  height: 38px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.detail-tab:hover {
+  color: var(--color-text-strong);
+}
+
+.detail-tab.active {
+  color: var(--color-text-strong);
+  border-bottom-color: var(--color-text-strong);
+}
+
+.detail-tab:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
+}
+
 .detail-empty {
   display: flex;
   flex-direction: column;
@@ -977,6 +1059,10 @@ h1 {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border);
   text-align: left;
+}
+
+.detail-index {
+  margin: var(--space-5);
 }
 
 @media (max-width: 1023px) {

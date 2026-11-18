@@ -1,4 +1,4 @@
-import type { Application, KnowledgeItem, Profile, StudyLog, Task } from '@/types'
+import type { Application, KnowledgeItem, Profile, StudyLog, Task, Resume } from '@/types'
 import { readJSON, writeJSON } from './storage'
 
 const DB_KEY = 'db'
@@ -12,6 +12,7 @@ export interface Database {
   applications: Application[]
   studyLogs: StudyLog[]
   profile: Profile
+  resumes: Resume[]
 }
 
 // 创建空数据
@@ -29,6 +30,7 @@ export function createEmptyDatabase(): Database {
       theme: 'system',
       onboardingDone: false,
     },
+    resumes: [],
   }
 }
 
@@ -56,6 +58,7 @@ export function normalizeDatabase(raw: unknown): Database {
     applications: Array.isArray(data.applications) ? data.applications : base.applications,
     studyLogs: Array.isArray(data.studyLogs) ? data.studyLogs : base.studyLogs,
     profile: isProfile(data.profile) ? data.profile : base.profile,
+    resumes: Array.isArray(data.resumes) ? data.resumes : base.resumes,
   }
 }
 

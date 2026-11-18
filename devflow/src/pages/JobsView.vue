@@ -5,7 +5,7 @@
         <p class="eyebrow">JOBS</p>
         <h1>求职</h1>
       </div>
-      <div class="head-actions">
+      <div class="head-actions" v-if="jobsTab === 'board'">
         <p class="summary">
           {{ activeCount }} 个进行中
           <template v-if="overdueCount > 0"> · {{ overdueCount }} 个待跟进</template>
@@ -17,86 +17,111 @@
       </div>
     </header>
 
-    <!-- 移动端tab -->
-    <div class="stage-tabs" role="group" aria-label="按阶段查看">
+    <div class="jobs-tabs" role="tablist" aria-label="求职视图">
       <button
-        v-for="stage in JOB_STAGES"
-        :key="stage.value"
         type="button"
-        :class="[
-          'stage-tab',
-          { active: activeStage === stage.value, overdue: hasOverdue(stage.value) },
-        ]"
-        :aria-pressed="activeStage === stage.value"
-        @click="activeStage = stage.value"
+        role="tab"
+        :aria-selected="jobsTab === 'board'"
+        :class="['jobs-tab', { active: jobsTab === 'board' }]"
+        @click="jobsTab = 'board'"
       >
-        {{ stage.label }}
-        <span class="tab-count">{{ countOf(stage.value) }}</span>
+        投递
+      </button>
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="jobsTab === 'resumes'"
+        :class="['jobs-tab', { active: jobsTab === 'resumes' }]"
+        @click="jobsTab = 'resumes'"
+      >
+        简历库
       </button>
     </div>
 
-    <!-- 内容区 -->
-    <div class="board">
-      <section
-        v-for="column in columns"
-        :key="column.stage"
-        :class="[
-          'column',
-          {
-            'drop-target': dragOverStage === column.stage,
-            'stage-hidden': activeStage !== column.stage,
-          },
-        ]"
-        @dragover.prevent="onDragOver(column.stage)"
-        @dragleave="dragOverStage = null"
-        @drop.prevent="onDrop(column.stage)"
-      >
-        <header class="column-head">
-          <span class="column-title">
-            <span class="stage-dot" :class="column.stage" aria-hidden="true" />
-            {{ column.label }}
-          </span>
-          <span class="column-count">{{ column.applications.length }}</span>
-        </header>
+    <div v-show="jobsTab === 'board'">
+      <!-- 移动端tab -->
+      <div class="stage-tabs" role="group" aria-label="按阶段查看">
+        <button
+          v-for="stage in JOB_STAGES"
+          :key="stage.value"
+          type="button"
+          :class="[
+            'stage-tab',
+            { active: activeStage === stage.value, overdue: hasOverdue(stage.value) },
+          ]"
+          :aria-pressed="activeStage === stage.value"
+          @click="activeStage = stage.value"
+        >
+          {{ stage.label }}
+          <span class="tab-count">{{ countOf(stage.value) }}</span>
+        </button>
+      </div>
 
-        <div class="column-body">
-          <div
-            v-for="app in column.applications"
-            :key="app.id"
-            :class="['card-wrap', { dragging: draggingId === app.id }]"
-            draggable="true"
-            @dragstart="onDragStart(app.id, $event)"
-            @dragend="onDragEnd"
-          >
-            <button
-              type="button"
-              :class="['job-card', { overdue: isFollowUpOverdue(app, today) }]"
-              @click="openDetail(app)"
+      <!-- 内容区 -->
+      <div class="board">
+        <section
+          v-for="column in columns"
+          :key="column.stage"
+          :class="[
+            'column',
+            {
+              'drop-target': dragOverStage === column.stage,
+              'stage-hidden': activeStage !== column.stage,
+            },
+          ]"
+          @dragover.prevent="onDragOver(column.stage)"
+          @dragleave="dragOverStage = null"
+          @drop.prevent="onDrop(column.stage)"
+        >
+          <header class="column-head">
+            <span class="column-title">
+              <span class="stage-dot" :class="column.stage" aria-hidden="true" />
+              {{ column.label }}
+            </span>
+            <span class="column-count">{{ column.applications.length }}</span>
+          </header>
+
+          <div class="column-body">
+            <div
+              v-for="app in column.applications"
+              :key="app.id"
+              :class="['card-wrap', { dragging: draggingId === app.id }]"
+              draggable="true"
+              @dragstart="onDragStart(app.id, $event)"
+              @dragend="onDragEnd"
             >
-              <div class="job-top">
-                <span class="company">{{ app.company }}</span>
-                <span :class="['priority', app.priority.toLowerCase()]">{{ app.priority }}</span>
-              </div>
+              <button
+                type="button"
+                :class="['job-card', { overdue: isFollowUpOverdue(app, today) }]"
+                @click="openDetail(app)"
+              >
+                <div class="job-top">
+                  <span class="company">{{ app.company }}</span>
+                  <span :class="['priority', app.priority.toLowerCase()]">{{ app.priority }}</span>
+                </div>
 
-              <p class="role">{{ app.role }}</p>
+                <p class="role">{{ app.role }}</p>
 
-              <div v-if="app.city || app.salary" class="job-meta">
-                <span v-if="app.city">{{ app.city }}</span>
-                <span v-if="app.salary">{{ app.salary }}</span>
-              </div>
+                <div v-if="app.city || app.salary" class="job-meta">
+                  <span v-if="app.city">{{ app.city }}</span>
+                  <span v-if="app.salary">{{ app.salary }}</span>
+                </div>
 
-              <p v-if="app.nextAction" class="next">
-                <Calendar :size="11" aria-hidden="true" />
-                {{ app.nextAction.label }} · {{ app.nextAction.date }}
-              </p>
-              <p v-else class="next muted">暂无下一步</p>
-            </button>
+                <p v-if="app.nextAction" class="next">
+                  <Calendar :size="11" aria-hidden="true" />
+                  {{ app.nextAction.label }} · {{ app.nextAction.date }}
+                </p>
+                <p v-else class="next muted">暂无下一步</p>
+              </button>
+            </div>
+
+            <p v-if="column.applications.length === 0" class="column-empty">暂无</p>
           </div>
-
-          <p v-if="column.applications.length === 0" class="column-empty">暂无</p>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
+
+    <ResumeLibrary v-show="jobsTab === 'resumes'" />
 
     <!-- 详情抽屉 -->
     <AppDrawer
@@ -187,6 +212,14 @@
         <section v-if="selected.note" class="block">
           <h3 class="block-title">备注</h3>
           <p class="note-text">{{ selected.note }}</p>
+        </section>
+
+        <section class="block">
+          <InterviewPrep
+            :application="selected"
+            @open-ai="openAiWorkspace"
+            @manage-resumes="openResumeLibrary"
+          />
         </section>
 
         <section class="block">
@@ -307,6 +340,29 @@
           <span class="field-label">备注</span>
           <textarea v-model="draft.note" class="input textarea" rows="3" />
         </label>
+
+        <label class="field">
+          <span class="field-label">简历</span>
+          <select v-model="draft.resumeId" class="input">
+            <option value="">暂不选择</option>
+            <option v-for="resume in db.resumes" :key="resume.id" :value="resume.id">
+              {{ resume.title }}
+            </option>
+          </select>
+          <span v-if="db.resumes.length === 0" class="field-hint">
+            简历库为空，可以先创建投递，再去“简历库”上传。
+          </span>
+        </label>
+
+        <label class="field">
+          <span class="field-label">岗位要求 / 职位描述</span>
+          <textarea
+            v-model="draft.jobRequirements"
+            class="input textarea"
+            rows="4"
+            placeholder="备份岗位要求，模拟面试会使用"
+          />
+        </label>
       </form>
 
       <template #footer>
@@ -315,6 +371,15 @@
           添加
         </Button>
       </template>
+    </AppDrawer>
+
+    <!-- ai助手抽屉 -->
+    <AppDrawer
+      v-model:open="aiOpen"
+      title="AI 助手"
+      :description="aiAppId ? '匹配分析 / 模拟面试' : ''"
+    >
+      <AiWorkspacePanel v-if="aiAppId" :application-id="aiAppId" />
     </AppDrawer>
   </section>
 </template>
@@ -338,6 +403,9 @@ import {
 import { toast } from '@/lib/toast'
 import { normalizeHttpUrl, hostOf } from '@/lib/url'
 import { useRoute, useRouter } from 'vue-router'
+import ResumeLibrary from '@/components/resume/ResumeLibrary.vue'
+import InterviewPrep from '@/components/jobs/InterviewPrep.vue'
+import AiWorkspacePanel from '@/components/ai/AiWorkspacePanel.vue'
 
 const db = useDatabase()
 const today = localDate()
@@ -409,6 +477,8 @@ const draft = reactive({
   nextLabel: '',
   nextDate: '',
   note: '',
+  resumeId: '',
+  jobRequirements: '',
 })
 
 const nextActionValid = computed(() => {
@@ -438,6 +508,8 @@ function openAdd() {
     nextLabel: '',
     nextDate: '',
     note: '',
+    resumeId: '',
+    jobRequirements: '',
   })
   addOpen.value = true
 }
@@ -459,6 +531,8 @@ function saveApplication() {
         ? { label: draft.nextLabel.trim(), date: draft.nextDate }
         : undefined,
     note: draft.note,
+    resumeId: draft.resumeId || undefined,
+    jobRequirements: draft.jobRequirements,
   })
   if (!app) return
 
@@ -564,6 +638,40 @@ watch(selectedId, () => {
   nextDraft.label = ''
   nextDraft.date = ''
 })
+
+const jobsTab = ref<'board' | 'resumes'>('board')
+
+watch(jobsTab, (tab) => {
+  if (tab !== 'board') {
+    detailOpen.value = false
+    addOpen.value = false
+  }
+})
+
+const jobRequirementsDraft = ref('')
+
+watch(
+  selected,
+  (app) => {
+    jobRequirementsDraft.value = app?.jobRequirements ?? ''
+  },
+  { immediate: true },
+)
+
+const aiOpen = ref(false)
+const aiAppId = ref<string | null>(null)
+
+function openAiWorkspace(): void {
+  if (!selected.value) return
+  aiAppId.value = selected.value.id
+  aiOpen.value = true
+  detailOpen.value = false
+}
+
+function openResumeLibrary(): void {
+  detailOpen.value = false
+  jobsTab.value = 'resumes'
+}
 </script>
 
 <style scoped>
@@ -1049,6 +1157,40 @@ h1 {
   margin: var(--space-2) 0 0;
   font-size: var(--text-2xs);
   color: var(--color-text-faint);
+}
+
+.jobs-tabs {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  padding: 3px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.jobs-tab {
+  height: 30px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.jobs-tab.active {
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+.jobs-tab:focus-visible {
+  outline: 2px solid var(--color-text-strong);
+  outline-offset: 2px;
 }
 
 /* 小于768采用tab切换 */

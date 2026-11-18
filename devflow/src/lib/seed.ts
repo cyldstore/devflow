@@ -158,5 +158,13 @@ export function createSeedDatabase(): Database {
         activity: 'practice',
       },
     ],
+    resumes: [
+      {
+        id: 'seed-resume-1',
+        title: '示例简历',
+        content: '# 示例简历\n\n- 熟悉 Vue 3\n- 熟悉 TypeScript',
+        updatedAt: now,
+      },
+    ],
   }
 }

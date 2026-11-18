@@ -75,6 +75,54 @@
       </Card>
     </div>
 
+    <Card class="ai-card">
+      <header class="chart-head">
+        <h2>AI 使用</h2>
+        <span>{{ range }} 天</span>
+      </header>
+
+      <p v-if="aiLoading" class="chart-empty" role="status">正在读取…</p>
+
+      <p v-else-if="aiError" class="chart-empty" role="alert">{{ aiError }}</p>
+
+      <div v-else-if="!aiStats || aiStats.requests === 0" class="chart-empty">
+        <p>这段时间还没有 AI 请求。</p>
+        <Button variant="lime" size="sm" @click="goJobs">去用一次 AI 助手</Button>
+      </div>
+
+      <template v-else>
+        <div class="ai-grid">
+          <div class="ai-kpi">
+            <span>请求</span>
+            <strong>{{ aiStats.requests }}</strong>
+          </div>
+          <div class="ai-kpi">
+            <span>Token</span>
+            <strong>{{ aiStats.totalTokens.toLocaleString('zh-CN') }}</strong>
+          </div>
+          <div class="ai-kpi">
+            <span>缓存命中</span>
+            <strong>{{ Math.round(aiStats.cacheHitRate * 100) }}%</strong>
+          </div>
+          <div class="ai-kpi">
+            <span>首字 P75</span>
+            <strong>{{
+              aiStats.firstTokenP75 === null ? '—' : `${aiStats.firstTokenP75} ms`
+            }}</strong>
+          </div>
+        </div>
+
+        <ul class="ai-models">
+          <li v-for="item in aiStats.byModel" :key="item.model" class="ai-model-row">
+            <span class="ai-model-name">{{ item.model }}</span>
+            <span>{{ item.requests }} 次</span>
+            <span>{{ item.totalTokens.toLocaleString('zh-CN') }} token</span>
+            <span>P75 {{ item.firstTokenP75 === null ? '—' : `${item.firstTokenP75} ms` }}</span>
+          </li>
+        </ul>
+      </template>
+    </Card>
+
     <Card class="topic-card">
       <header class="chart-head">
         <h2>主题掌握度</h2>
@@ -202,6 +250,7 @@ import AppDialog from '@/components/ui/AppDialog.vue'
 import { createStudyLog } from '@/stores/study'
 import { toast } from '@/lib/toast'
 import { studyBarOption } from '@/lib/chart-options'
+import { fetchChatStats, type ChatStats } from '@/lib/ai/stats'
 
 const RANGES: { value: InsightRange; label: string }[] = [
   { value: 7, label: '最近 7 天' },
@@ -411,6 +460,35 @@ watch(
   },
   { immediate: true },
 )
+
+const aiStats = ref<ChatStats | null>(null)
+const aiLoading = ref(false)
+const aiError = ref<string | null>(null)
+let aiRun = 0
+
+async function loadAiStats(): Promise<void> {
+  const run = ++aiRun
+  aiLoading.value = true
+  aiError.value = null
+
+  try {
+    const data = await fetchChatStats(range.value)
+    if (run !== aiRun) return
+    aiStats.value = data
+  } catch (err) {
+    if (run !== aiRun) return
+    aiStats.value = null
+    aiError.value = err instanceof Error ? err.message : 'AI 统计读取失败'
+  } finally {
+    if (run === aiRun) aiLoading.value = false
+  }
+}
+
+watch(range, () => void loadAiStats(), { immediate: true })
+
+function goJobs(): void {
+  router.push('/jobs')
+}
 </script>
 
 <style scoped>
@@ -668,5 +746,115 @@ h1 {
   margin-right: auto;
   font-size: var(--text-2xs);
   color: var(--color-tone-sage-fg);
+}
+
+/* AI 使用 */
+.ai-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.ai-card .chart-head {
+  margin-bottom: 0;
+}
+
+.ai-card .chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.ai-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: var(--space-4);
+}
+
+.ai-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+}
+
+.ai-kpi span {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
+  color: var(--color-text-faint);
+}
+
+.ai-kpi strong {
+  font-size: var(--text-xl);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--color-text-strong);
+}
+
+.ai-models {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.ai-model-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) auto auto auto;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+}
+
+.ai-model-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.ai-model-name {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-model-row span:not(.ai-model-name) {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .ai-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ai-model-row {
+    grid-template-columns: repeat(3, auto);
+    justify-content: space-between;
+    row-gap: var(--space-2);
+  }
+
+  .ai-model-name {
+    grid-column: 1 / -1;
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
 </style>

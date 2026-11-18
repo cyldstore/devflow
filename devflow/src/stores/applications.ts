@@ -15,6 +15,8 @@ export interface ApplicationInput {
   priority: Priority
   nextAction?: { label: string; date: string }
   note?: string
+  resumeId?: string
+  jobRequirements?: string
 }
 
 export function createApplication(input: ApplicationInput): Application | null {
@@ -23,6 +25,12 @@ export function createApplication(input: ApplicationInput): Application | null {
   if (!company || !role) return null
 
   const now = new Date().toISOString()
+
+  const db = useDatabase()
+  const resumeId =
+    input.resumeId && db.resumes.some((resume) => resume.id === input.resumeId)
+      ? input.resumeId
+      : undefined
 
   const app: Application = {
     id: createId(),
@@ -44,11 +52,13 @@ export function createApplication(input: ApplicationInput): Application | null {
         date: localDate(),
       },
     ],
+    resumeId,
+    jobRequirements: input.jobRequirements?.trim() || undefined,
     createdAt: now,
     updatedAt: now,
   }
 
-  useDatabase().applications.push(app)
+  db.applications.push(app)
   return app
 }
 
@@ -107,5 +117,29 @@ export function completeNextAction(id: string): Application | null {
     date: localDate(),
   })
 
+  return app
+}
+
+// 更新求职信息
+export function updateApplication(
+  id: string,
+  patch: Partial<Pick<Application, 'resumeId' | 'jobRequirements'>>,
+): Application | null {
+  const db = useDatabase()
+  const app = db.applications.find((item) => item.id === id)
+  if (!app) return null
+
+  if ('resumeId' in patch) {
+    if (patch.resumeId && !db.resumes.some((resume) => resume.id === patch.resumeId)) {
+      return null
+    }
+    app.resumeId = patch.resumeId
+  }
+
+  if ('jobRequirements' in patch) {
+    app.jobRequirements = patch.jobRequirements?.trim() || undefined
+  }
+
+  app.updatedAt = new Date().toISOString()
   return app
 }
