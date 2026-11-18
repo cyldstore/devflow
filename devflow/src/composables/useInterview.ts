@@ -9,12 +9,12 @@ import {
   TOTAL_INTERVIEW_QUESTIONS,
 } from '@/lib/ai/interview-prompts'
 
-let disposed = false
-onScopeDispose(() => {
-  disposed = true
-})
-
 export function useInterview(applicationId: string) {
+  let disposed = false
+  onScopeDispose(() => {
+    disposed = true
+  })
+
   const db = useDatabase()
   const store = useAiSessionStore()
 

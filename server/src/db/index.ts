@@ -39,11 +39,24 @@ const migrations: string[] = [
   `,
   `ALTER TABLE chunks ADD COLUMN chunk_index INTEGER NOT NULL DEFAULT 0;`,
   `ALTER TABLE chunks ADD COLUMN source_updated_at TEXT;`,
+  `CREATE TABLE IF NOT EXISTS web_vitals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT NOT NULL,
+  route TEXT NOT NULL DEFAULT '',
+  metric TEXT NOT NULL,
+  value REAL NOT NULL,
+  rating TEXT NOT NULL,
+  device TEXT NOT NULL DEFAULT 'desktop',
+  sample_rate REAL NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_vitals_metric_time
+  ON web_vitals (metric, created_at);`,
 ];
 
 const dbPath = fileURLToPath(new URL("../../data/devflow.db", import.meta.url));
 mkdirSync(dirname(dbPath), { recursive: true });
-
 
 export const db = new Database(dbPath);
 

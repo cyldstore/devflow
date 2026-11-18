@@ -3,6 +3,7 @@ import { getDatabaseStatus } from "./db/index.js";
 import { aiRouter } from "./routes/ai.js";
 import { ragRouter } from "./routes/rag.js";
 import { statsRouter } from "./routes/stats.js";
+import { vitalsRouter } from "./routes/vitals.js";
 
 export function createApp() {
   const app = express();
@@ -25,6 +26,11 @@ export function createApp() {
   app.use("/api/ai", aiRouter);
   app.use("/api/rag", ragRouter);
   app.use("/api/stats", statsRouter);
+  app.use(
+    "/api/vitals",
+    express.text({ type: "text/plain", limit: "32kb" }),
+    vitalsRouter,
+  );
 
   return app;
 }

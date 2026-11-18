@@ -123,6 +123,39 @@
       </template>
     </Card>
 
+    <Card class="vitals-card">
+      <header class="chart-head">
+        <h2>Web 性能</h2>
+        <span>{{ range }} 天</span>
+      </header>
+
+      <p v-if="vitalsLoading" class="chart-empty" role="status">正在读取…</p>
+
+      <p v-else-if="vitalsError" class="chart-empty" role="alert">{{ vitalsError }}</p>
+
+      <div v-else-if="!vitalsStats || vitalsStats.totalSamples === 0" class="chart-empty">
+        <p>这段时间还没有性能样本。</p>
+        <p>多访问几次页面后再回来看看。</p>
+      </div>
+
+      <template v-else>
+        <div class="vitals-grid">
+          <div v-for="item in vitalItems" :key="item.name" class="vital-kpi">
+            <span>{{ item.label }}</span>
+            <strong :class="item.rating">{{ item.text }}</strong>
+            <small>
+              {{ item.samples }} 个样本
+              <template v-if="item.samples < 20"> · 样本较少</template>
+            </small>
+          </div>
+        </div>
+
+        <p class="vitals-meta">
+          {{ vitalsStats.sessions }} 次采样页 · {{ vitalsStats.totalSamples }} 个指标样本
+        </p>
+      </template>
+    </Card>
+
     <Card class="topic-card">
       <header class="chart-head">
         <h2>主题掌握度</h2>
@@ -251,6 +284,13 @@ import { createStudyLog } from '@/stores/study'
 import { toast } from '@/lib/toast'
 import { studyBarOption } from '@/lib/chart-options'
 import { fetchChatStats, type ChatStats } from '@/lib/ai/stats'
+import {
+  fetchVitalsStats,
+  ratingOf,
+  type VitalMetricStats,
+  type VitalName,
+  type VitalsStats,
+} from '@/lib/perf-stats'
 
 const RANGES: { value: InsightRange; label: string }[] = [
   { value: 7, label: '最近 7 天' },
@@ -489,6 +529,55 @@ watch(range, () => void loadAiStats(), { immediate: true })
 function goJobs(): void {
   router.push('/jobs')
 }
+
+const vitalsStats = ref<VitalsStats | null>(null)
+const vitalsLoading = ref(false)
+const vitalsError = ref<string | null>(null)
+let vitalsRun = 0
+
+async function loadVitalsStats(): Promise<void> {
+  const run = ++vitalsRun
+  vitalsLoading.value = true
+  vitalsError.value = null
+
+  try {
+    const data = await fetchVitalsStats(range.value)
+    if (run !== vitalsRun) return
+    vitalsStats.value = data
+  } catch (err) {
+    if (run !== vitalsRun) return
+    vitalsStats.value = null
+    vitalsError.value = err instanceof Error ? err.message : '性能统计读取失败'
+  } finally {
+    if (run === vitalsRun) vitalsLoading.value = false
+  }
+}
+
+watch(range, () => void loadVitalsStats(), { immediate: true })
+
+function makeVitalItem(name: VitalName, label: string, metric: VitalMetricStats) {
+  const value = metric.p75
+
+  return {
+    name,
+    label,
+    samples: metric.samples,
+    rating: value === null ? '' : ratingOf(name, value),
+    text: value === null ? '—' : name === 'CLS' ? value.toFixed(3) : `${Math.round(value)} ms`,
+  }
+}
+
+const vitalItems = computed(() => {
+  const stats = vitalsStats.value
+  if (!stats) return []
+
+  return [
+    makeVitalItem('LCP', 'LCP P75', stats.metrics.LCP),
+    makeVitalItem('CLS', 'CLS P75', stats.metrics.CLS),
+    makeVitalItem('FCP', 'FCP P75', stats.metrics.FCP),
+    makeVitalItem('FP', 'FP P75', stats.metrics.FP),
+  ]
+})
 </script>
 
 <style scoped>
@@ -855,6 +944,85 @@ h1 {
     overflow: visible;
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+}
+
+.vitals-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.vitals-card .chart-head {
+  margin-bottom: 0;
+}
+
+.vitals-card .chart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-4);
+}
+
+.vital-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+}
+
+.vital-kpi span {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
+  color: var(--color-text-faint);
+}
+
+.vital-kpi strong {
+  font-size: var(--text-xl);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.vital-kpi small {
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+.vital-kpi .good {
+  color: var(--color-tone-sage-fg);
+}
+
+.vital-kpi .needs-improvement {
+  color: var(--color-tone-amber-fg);
+}
+
+.vital-kpi .poor {
+  color: var(--color-tone-coral-fg);
+}
+
+.vitals-meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-text-faint);
+}
+
+@media (max-width: 767px) {
+  .vitals-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>
