@@ -1,9 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import OverviewView from '@/pages/OverviewView.vue'
-import TasksView from '@/pages/TasksView.vue'
-import KnowledgeView from '@/pages/KnowledgeView.vue'
-import JobsView from '@/pages/JobsView.vue'
-import InsightsView from '@/pages/InsightsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,31 +6,31 @@ const router = createRouter({
     {
       path: '/',
       name: 'overview',
-      component: OverviewView,
+      component: () => import('@/pages/OverviewView.vue'),
       meta: { title: '概览' },
     },
     {
       path: '/tasks',
       name: 'tasks',
-      component: TasksView,
+      component: () => import('@/pages/TasksView.vue'),
       meta: { title: '任务' },
     },
     {
       path: '/knowledge',
       name: 'knowledge',
-      component: KnowledgeView,
+      component: () => import('@/pages/KnowledgeView.vue'),
       meta: { title: '知识库' },
     },
     {
       path: '/jobs',
       name: 'jobs',
-      component: JobsView,
+      component: () => import('@/pages/JobsView.vue'),
       meta: { title: '求职' },
     },
     {
       path: '/insights',
       name: 'insights',
-      component: InsightsView,
+      component: () => import('@/pages/InsightsView.vue'),
       meta: { title: '复盘' },
     },
     {

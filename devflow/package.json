@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "analyze": "vue-tsc -b && vite build --mode analyze"
   },
   "dependencies": {
     "dompurify": "^3.4.17",
@@ -35,6 +36,7 @@
     "eslint": "^10.13.0",
     "eslint-plugin-vue": "^10.11.1",
     "prettier": "^3.9.10",
+    "rollup-plugin-visualizer": "^7.1.3",
     "typescript": "~6.0.3",
     "vite": "^8.3.4",
     "vue-tsc": "^3.3.13"
