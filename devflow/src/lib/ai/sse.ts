@@ -10,8 +10,6 @@ export type StreamEvent =
   | { type: 'done'; finishReason: string }
   | { type: 'error'; code: string; message: string }
 
-export type ChatPurpose = 'analysis' | 'interview' | 'summary' | 'qa'
-
 export async function* readSSE(body: ReadableStream<Uint8Array>): AsyncGenerator<StreamEvent> {
   const reader = body.getReader()
   const decoder = new TextDecoder()

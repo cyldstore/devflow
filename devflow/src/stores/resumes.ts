@@ -43,13 +43,6 @@ export function removeResume(id: string): number {
   return affected.length
 }
 
-export function getApplicationResume(applicationId: string): Resume | null {
-  const db = useDatabase()
-  const app = db.applications.find((item) => item.id === applicationId)
-  if (!app?.resumeId) return null
-  return db.resumes.find((resume) => resume.id === app.resumeId) ?? null
-}
-
 export function setApplicationResume(applicationId: string, resumeId: string | undefined): void {
   const db = useDatabase()
   const app = db.applications.find((item) => item.id === applicationId)

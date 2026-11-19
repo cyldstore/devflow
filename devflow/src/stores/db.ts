@@ -1,10 +1,10 @@
-import { reactive, readonly, ref, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import type { Database } from '@/lib/db'
 import { loadDatabase, saveDatabase, createEmptyDatabase } from '@/lib/db'
 import { createSeedDatabase } from '@/lib/seed'
 import { markDataChanged } from './backup'
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' // 保存状态
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' // 保存状态 空闲 | 保存中 | 已保存 | 保存失败
 
 // 延迟保存时间
 const SAVE_DELAY = 400
@@ -18,11 +18,6 @@ let timer: ReturnType<typeof setTimeout> | undefined
 // 获取数据
 export function useDatabase(): Database {
   return state
-}
-
-// 获取保存状态
-export function useSaveStatus() {
-  return readonly(status)
 }
 
 // 保存数据

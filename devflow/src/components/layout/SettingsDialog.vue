@@ -69,14 +69,6 @@ const draft = reactive({
   reminderEnabled: true,
 })
 
-watch(settingsOpen, (isOpen) => {
-  if (!isOpen) return
-
-  draft.name = db.profile.name
-  draft.targetRole = db.profile.targetRole
-  draft.weeklyGoalHours = db.profile.weeklyGoalHours
-})
-
 const canSave = computed(
   () =>
     Number.isFinite(draft.weeklyGoalHours) &&

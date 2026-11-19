@@ -648,16 +648,6 @@ watch(jobsTab, (tab) => {
   }
 })
 
-const jobRequirementsDraft = ref('')
-
-watch(
-  selected,
-  (app) => {
-    jobRequirementsDraft.value = app?.jobRequirements ?? ''
-  },
-  { immediate: true },
-)
-
 const aiOpen = ref(false)
 const aiAppId = ref<string | null>(null)
 

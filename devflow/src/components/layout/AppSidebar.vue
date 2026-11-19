@@ -1,3 +1,4 @@
+<!-- 侧边栏 -->
 <template>
   <aside class="sidebar">
     <nav class="nav" aria-label="主导航">

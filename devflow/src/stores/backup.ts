@@ -2,13 +2,13 @@ import { computed, ref } from 'vue'
 import { readJSON, writeJSON } from '@/lib/storage'
 
 interface BackupMeta {
-  lastExportedAt: string | null
-  lastChangedAt: string | null
+  lastExportedAt: string | null // 上次导出时间
+  lastChangedAt: string | null //  上次数据变更时间
   reminderEnabled: boolean
-  snoozedUntil: string | null
+  snoozedUntil: string | null // 稍后提醒时间
 }
 
-const META_KEY = 'backup-meta'
+const META_KEY = 'backup-meta' // localStorage键值
 
 const stored = readJSON<BackupMeta>(META_KEY, {
   lastExportedAt: null,

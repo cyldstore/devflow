@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, onBeforeUnmount } from 'vue'
 import type { KnowledgeItem } from '@/types'
 import Button from '@/components/ui/Button.vue'
 import { useSSE } from '@/composables/useSSE'
@@ -167,13 +167,21 @@ async function ensureIndex(): Promise<void> {
 
 const answerStale = ref(false)
 
+const INDEX_DEBOUNCE_MS = 1200
+let indexTimer: ReturnType<typeof setTimeout> | undefined
+
 watch(
   () => props.item.updatedAt,
   () => {
     answerStale.value = Boolean(text.value)
-    void ensureIndex()
+    clearTimeout(indexTimer)
+    indexTimer = setTimeout(() => void ensureIndex(), INDEX_DEBOUNCE_MS)
   },
 )
+
+onBeforeUnmount(() => {
+  clearTimeout(indexTimer)
+})
 
 const textHtml = computed(() => {
   return renderMarkdown(text.value)

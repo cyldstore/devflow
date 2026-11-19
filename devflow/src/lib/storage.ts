@@ -18,9 +18,3 @@ export function writeJSON<T>(key: string, value: T): boolean {
     return false
   }
 }
-
-export function removeJSON(key: string): void {
-  try {
-    localStorage.removeItem(`${PREFIX}:${key}`)
-  } catch {}
-}

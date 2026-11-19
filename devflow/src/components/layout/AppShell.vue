@@ -1,12 +1,15 @@
 <template>
   <div class="shell">
+    <!-- 侧边栏 -->
     <AppSidebar />
     <div class="main">
+      <!-- 顶栏 -->
       <AppTopbar />
       <main class="content">
         <RouterView />
       </main>
     </div>
+    <!-- 移动端底部导航栏 -->
     <BottomNav />
     <ToastHost />
     <SettingsDialog />

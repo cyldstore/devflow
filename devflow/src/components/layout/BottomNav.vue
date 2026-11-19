@@ -1,3 +1,4 @@
+<!-- 移动端底部导航栏 -->
 <template>
   <nav class="bottom-nav" aria-label="移动端主导航">
     <RouterLink v-for="item in items" :key="item.to" :to="item.to" class="tab">

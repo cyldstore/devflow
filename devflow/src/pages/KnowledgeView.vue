@@ -581,11 +581,6 @@ watch(editorOpen, (open) => {
   }
 })
 
-onBeforeUnmount(() => {
-  clearSaveTimer()
-  if (dirty) persistDraft()
-})
-
 const deleteOpen = ref(false) // 删除弹窗开启状态
 const deleteTargetId = ref<string | null>(null)
 

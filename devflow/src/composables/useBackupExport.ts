@@ -8,6 +8,7 @@ export function useBackupExport() {
 
   function exportData(): void {
     downloadBackup(db)
+    // 记录导出操作
     markExported()
     toast.add({
       title: '已导出备份',
